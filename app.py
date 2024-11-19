@@ -8,7 +8,8 @@ from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
 
 # Streamlit App Title
-st.title("Specta AI - Custom Sports Broadcast")
+st.title("Specta AI")
+st.header("Customized AI-Generated Sports Broadcast")
 
 # Login Section
 st.sidebar.header("Login")
