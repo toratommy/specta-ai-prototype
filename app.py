@@ -1,29 +1,38 @@
-# Main Streamlit app
-
 import streamlit as st
 from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
-
 # Streamlit App Title
-st.title("Specta AI")
-st.header("Customized AI-Generated Sports Broadcast")
+st.title("Specta AI - Custom Sports Broadcast")
+
+# Initialize session state for login
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# Function to handle sign-out
+def sign_out():
+    st.session_state.logged_in = False
 
 # Login Section
-st.sidebar.header("Login")
-username = st.sidebar.text_input("Username")
-password = st.sidebar.text_input("Password", type="password")
+if not st.session_state.logged_in:
+    st.sidebar.header("Login")
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
 
-if st.sidebar.button("Login"):
-    if authenticate(username, password):
-        st.sidebar.success("Login successful!")
-        st.session_state.logged_in = True
-    else:
-        st.sidebar.error("Invalid credentials.")
+    if st.sidebar.button("Login"):
+        if authenticate(username, password):
+            st.sidebar.success("Login successful!")
+            st.session_state.logged_in = True
+        else:
+            st.sidebar.error("Invalid credentials.")
+else:
+    # Add sign-out button when logged in
+    if st.sidebar.button("Sign Out"):
+        sign_out()
 
-if st.session_state.get("logged_in", False):
+if st.session_state.logged_in:
     # Fetch NFL Schedule
     st.sidebar.header("Game Selection")
     st.sidebar.write("Choose a game to customize your broadcast:")
