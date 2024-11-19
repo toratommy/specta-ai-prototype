@@ -1,7 +1,6 @@
-streamlit==1.24.0
+streamlit==1.26.0
 requests==2.31.0
 pyyaml==6.0.1
-pillow==9.4.0 --only-binary=:all:
+pillow==10.4.0
 openai==0.28.0
-pip>=24.3.1
 
