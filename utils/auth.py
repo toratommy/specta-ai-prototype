@@ -1,12 +1,7 @@
 # Simple authentication for login
 
-import yaml
-
-def load_config():
-    with open("config.yml", "r") as file:
-        return yaml.safe_load(file)
+import streamlit as st
 
 def authenticate(username, password):
-    config = load_config()
-    credentials = config["credentials"]
+    credentials = st.secrets["credentials"]
     return username == credentials["username"] and password == credentials["password"]
