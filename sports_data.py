@@ -1,26 +1,35 @@
-# Handles sports data ingestion
-
 import requests
-from utils.auth import load_config
+import streamlit as st
 
 def get_nfl_schedule():
-    config = load_config()
-    api_key = config["api_keys"]["sportsdataio"]
+    """
+    Fetches the NFL schedule for the current season using SportsDataIO.
+    """
+    api_key = st.secrets["api_keys"]["sportsdataio"]
     url = "https://api.sportsdata.io/v3/nfl/scores/json/Schedules/2024"
     headers = {"Ocp-Apim-Subscription-Key": api_key}
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
         return response.json()
-    else:
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch NFL schedule: {e}")
         return []
 
 def get_game_details(game_key):
-    config = load_config()
-    api_key = config["api_keys"]["sportsdataio"]
+    """
+    Fetches detailed information for a specific NFL game using SportsDataIO.
+    """
+    api_key = st.secrets["api_keys"]["sportsdataio"]
     url = f"https://api.sportsdata.io/v3/nfl/scores/json/BoxScore/{game_key}"
     headers = {"Ocp-Apim-Subscription-Key": api_key}
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
         return response.json()
-    else:
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch game details for {game_key}: {e}")
         return {}
+
