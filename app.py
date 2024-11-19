@@ -45,17 +45,21 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule()
 
     if nfl_schedule:
-        # Prepend an empty option for no default selection
+        # Create a placeholder for the default selection
+        placeholder_option = "Select a Game"
         game_keys = {game["GameKey"]: f"{game['HomeTeam']} vs {game['AwayTeam']}" for game in nfl_schedule}
-        options = ["Select a Game"] + list(game_keys.keys())
+        options = [placeholder_option] + list(game_keys.keys())
+        
+        # Use a selectbox with the placeholder as the default
         selected_game_key = st.sidebar.selectbox(
             "Select Game",
             options=options,
-            format_func=lambda x: game_keys.get(x, x),  # Display the game name or placeholder
+            format_func=lambda x: game_keys.get(x, placeholder_option),  # Display game name or placeholder
+            index=0,  # Ensures the placeholder is always the default option
         )
 
-        # Ensure a valid game is selected before proceeding
-        if selected_game_key != "Select a Game":
+        # Ensure the user selects a valid game before proceeding
+        if selected_game_key != placeholder_option:
             # Fetch game details
             game_data = get_game_details(selected_game_key)
 
@@ -91,5 +95,6 @@ if st.session_state.logged_in:
             st.warning("Please select a game to proceed.")
     else:
         st.error("Failed to fetch NFL schedule.")
+
 else:
     st.info("Please log in to access the app.")
