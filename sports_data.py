@@ -14,6 +14,7 @@ def get_nfl_schedule():
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         schedule = response.json()
+        st.write(schedule)  # Display schedule to verify the GameKey
         
         # Filter for completed or live games
         filtered_schedule = [
@@ -34,6 +35,7 @@ def get_game_details(game_key):
     url = f"https://api.sportsdata.io/v3/nfl/scores/json/BoxScore/{game_key}"
     headers = {"Ocp-Apim-Subscription-Key": api_key}
     
+    st.write(f"Fetching game details for GameKey: {game_key} ...")
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
