@@ -9,6 +9,9 @@ __pycache__/
 # metadata files
 .DS_Store
 
+# Ignore the Streamlit secrets file
+.streamlit/secrets.toml
+
 # Distribution / packaging
 .Python
 build/
