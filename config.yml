@@ -1,0 +1,8 @@
+# Configuration file for credentials
+
+credentials:
+  username: "user1"
+  password: "password123"
+api_keys:
+  sportsdataio: "YOUR_SPORTSDATAIO_API_KEY"
+  openai: "YOUR_OPENAI_API_KEY"
