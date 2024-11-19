@@ -3,7 +3,6 @@ from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
-import time  # Optional, for adding delays to enhance UX
 
 # Initialize session state variables
 if "logged_in" not in st.session_state:
@@ -15,7 +14,6 @@ if "username" not in st.session_state:
 def sign_out():
     st.session_state.logged_in = False
     st.session_state.username = ""
-    st.experimental_rerun()  # Force a refresh to update UI immediately
 
 # Main App
 st.title("Specta AI - Custom Sports Broadcast")
@@ -31,8 +29,6 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.username = username
             st.sidebar.success("Login successful!")
-            time.sleep(1)  # Optional: Add a slight delay for better UX
-            st.experimental_rerun()  # Force a refresh to update UI immediately
         else:
             st.sidebar.error("Invalid credentials.")
 else:
@@ -49,10 +45,12 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule()
 
     if nfl_schedule:
-        # Prepend an empty option for no default selection
+        # Create a placeholder for the default selection
         placeholder_option = "Select a Game"
         game_keys = {game["GameKey"]: f"{game['HomeTeam']} vs {game['AwayTeam']}" for game in nfl_schedule}
         options = [placeholder_option] + list(game_keys.keys())
+        
+        # Use a selectbox with the placeholder as the default
         selected_game_key = st.sidebar.selectbox(
             "Select Game",
             options=options,
@@ -60,7 +58,7 @@ if st.session_state.logged_in:
             index=0,  # Ensures the placeholder is always the default option
         )
 
-        # Ensure a valid game is selected before proceeding
+        # Ensure the user selects a valid game before proceeding
         if selected_game_key != placeholder_option:
             # Fetch game details
             game_data = get_game_details(selected_game_key)
@@ -97,5 +95,6 @@ if st.session_state.logged_in:
             st.warning("Please select a game to proceed.")
     else:
         st.error("Failed to fetch NFL schedule.")
+
 else:
     st.info("Please log in to access the app.")
