@@ -1,13 +1,11 @@
 # Main Streamlit app
 
 import streamlit as st
-from utils.auth import authenticate, load_config
+from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
-# Load configuration
-config = load_config()
 
 # Streamlit App Title
 st.title("Specta AI - Custom Sports Broadcast")
