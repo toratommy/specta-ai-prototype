@@ -1,6 +1,6 @@
-streamlit==1.26.0
-requests==2.31.0
-pyyaml==6.0.1
-pillow==10.4.0
-openai==0.28.0
+streamlit
+requests
+pyyaml
+pillow
+openai
 
