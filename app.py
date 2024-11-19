@@ -16,7 +16,8 @@ def sign_out():
     st.session_state.username = ""
 
 # Main App
-st.title("Specta AI - Custom Sports Broadcast")
+st.title("Specta AI")
+st.header("Customized, AI-Generated Sports Broadcast")
 
 # Login Section
 if not st.session_state.logged_in:
