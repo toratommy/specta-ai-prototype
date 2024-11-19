@@ -45,35 +45,50 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule()
 
     if nfl_schedule:
+        # Prepend an empty option for no default selection
         game_keys = {game["GameKey"]: f"{game['HomeTeam']} vs {game['AwayTeam']}" for game in nfl_schedule}
-        selected_game_key = st.sidebar.selectbox("Select Game", options=list(game_keys.keys()), format_func=lambda x: game_keys[x])
+        options = ["Select a Game"] + list(game_keys.keys())
+        selected_game_key = st.sidebar.selectbox(
+            "Select Game",
+            options=options,
+            format_func=lambda x: game_keys.get(x, x),  # Display the game name or placeholder
+        )
 
-        # Fetch game details
-        game_data = get_game_details(selected_game_key)
+        # Ensure a valid game is selected before proceeding
+        if selected_game_key != "Select a Game":
+            # Fetch game details
+            game_data = get_game_details(selected_game_key)
 
-        if game_data:
-            st.write(f"### Game: {game_keys[selected_game_key]}")
-            st.write(f"Date: {game_data.get('Day')}, Stadium: {game_data.get('Stadium', {}).get('Name', 'Unknown')}")
+            if game_data:
+                st.write(f"### Game: {game_keys[selected_game_key]}")
+                st.write(f"Date: {game_data.get('Day')}, Stadium: {game_data.get('Stadium', {}).get('Name', 'Unknown')}")
 
-            # Player selection
-            players = st.sidebar.multiselect("Select Players of Interest", [player["Name"] for player in game_data.get("HomeTeamPlayers", []) + game_data.get("AwayTeamPlayers", [])])
+                # Player selection
+                players = st.sidebar.multiselect(
+                    "Select Players of Interest",
+                    [player["Name"] for player in game_data.get("HomeTeamPlayers", []) + game_data.get("AwayTeamPlayers", [])],
+                )
 
-            # Tone/Storyline input
-            user_prompt = st.sidebar.text_area("Enter 1-2 sentences about how you'd like the broadcast tailored (e.g., tone, storyline).")
+                # Tone/Storyline input
+                user_prompt = st.sidebar.text_area(
+                    "Enter 1-2 sentences about how you'd like the broadcast tailored (e.g., tone, storyline)."
+                )
 
-            if st.sidebar.button("Generate Broadcast"):
-                # Prepare input for LLM
-                game_info = prepare_game_info(game_keys[selected_game_key], game_data)
-                preferences = prepare_user_preferences(game_keys[selected_game_key], players, user_prompt)
+                if st.sidebar.button("Generate Broadcast"):
+                    # Prepare input for LLM
+                    game_info = prepare_game_info(game_keys[selected_game_key], game_data)
+                    preferences = prepare_user_preferences(game_keys[selected_game_key], players, user_prompt)
 
-                # Generate Broadcast
-                broadcast = generate_broadcast(game_info, preferences)
+                    # Generate Broadcast
+                    broadcast = generate_broadcast(game_info, preferences)
 
-                # Display Broadcast
-                st.write("### Customized Broadcast")
-                st.write(broadcast)
+                    # Display Broadcast
+                    st.write("### Customized Broadcast")
+                    st.write(broadcast)
+            else:
+                st.error("Failed to fetch game details.")
         else:
-            st.error("Failed to fetch game details.")
+            st.warning("Please select a game to proceed.")
     else:
         st.error("Failed to fetch NFL schedule.")
 else:
