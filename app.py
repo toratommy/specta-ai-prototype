@@ -6,7 +6,7 @@ from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
 # Add the logo to the top of the sidebar
-st.sidebar.image("assets/logo.png", use_column_width=True)  # Adjust the path to your logo file
+st.sidebar.image("assets/logo.png", use_containder_width=True)  # Adjust the path to your logo file
 
 # Main App
 st.title("Specta AI")
