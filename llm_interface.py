@@ -73,7 +73,7 @@ Generate an engaging game summary based on the information above, emphasizing re
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
-            max_tokens=250,  # Limit to 250 tokens
+            max_tokens=500,  # Limit to 250 tokens
             stop=["\n\n"]  # Stop at natural paragraph boundaries
         )
 
