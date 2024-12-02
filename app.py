@@ -46,32 +46,29 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule()
 
     if nfl_schedule:
-        # Create a dictionary of game keys and their descriptions with game date
+        # Create a dictionary of score IDs and their descriptions with game date
         game_keys = {
-            game["GameKey"]: f"{game['AwayTeam']} vs {game['HomeTeam']} ({game['Date'][:10]})"
+            game["ScoreID"]: f"{game['AwayTeam']} vs {game['HomeTeam']} ({game['Date'][:10]})"
             for game in nfl_schedule
         }
         options = ["Select a Game"] + list(game_keys.keys())
-        selected_game_key = st.sidebar.selectbox(
+        selected_score_id = st.sidebar.selectbox(
             "Select Game",
             options=options,
             format_func=lambda x: game_keys.get(x, x),  # Display the game name with date or placeholder
         )
 
         # Ensure a valid game is selected before proceeding
-        if selected_game_key != "Select a Game":
+        if selected_score_id != "Select a Game":
             # Fetch game details
-            game_data = get_game_details(selected_game_key)
+            game_data = get_game_details(selected_score_id)
 
             if game_data:
-                st.write(f"### Game: {game_keys[selected_game_key]}")
-                st.write(f"Date: {game_data.get('Date')}, Stadium: {game_data.get('Stadium', {}).get('Name', 'Unknown')}")
-
-                # Player selection
-                players = st.sidebar.multiselect(
-                    "Select Players of Interest",
-                    [player["Name"] for player in game_data.get("HomeTeamPlayers", []) + game_data.get("AwayTeamPlayers", [])],
-                )
+                st.write(f"### Game: {game_keys[selected_score_id]}")
+                st.write(f"Date: {game_data['Score']['Date']}")
+                st.write(f"Stadium: {game_data['Score']['StadiumDetails']['Name']}")
+                st.write(f"City: {game_data['Score']['StadiumDetails']['City']}")
+                st.write(f"Forecast: {game_data['Score']['ForecastDescription']}")
 
                 # Tone/Storyline input
                 user_prompt = st.sidebar.text_area(
@@ -80,8 +77,13 @@ if st.session_state.logged_in:
 
                 if st.sidebar.button("Generate Broadcast"):
                     # Prepare input for LLM
-                    game_info = prepare_game_info(game_keys[selected_game_key], game_data)
-                    preferences = prepare_user_preferences(game_keys[selected_game_key], players, user_prompt)
+                    game_info = {
+                        "away_team": game_data["Score"]["AwayTeam"],
+                        "home_team": game_data["Score"]["HomeTeam"],
+                        "stadium": game_data["Score"]["StadiumDetails"]["Name"],
+                        "forecast": game_data["Score"]["ForecastDescription"],
+                    }
+                    preferences = {"prompt": user_prompt}
 
                     # Generate Broadcast
                     broadcast = generate_broadcast(game_info, preferences)
@@ -97,4 +99,3 @@ if st.session_state.logged_in:
         st.error("Failed to fetch NFL schedule.")
 else:
     st.info("Please log in to access the app.")
-
