@@ -83,7 +83,7 @@ if st.session_state.logged_in:
                     # Generate and display game summary
                     basic_details, game_summary = generate_game_summary(game_data, temperature)
                     st.write("### Game Summary")
-                    st.markdown(basic_details)  # Render basic details as Markdown
+                    st.markdown(basic_details, unsafe_allow_html=True)  # Render Markdown as HTML
                     st.write(game_summary)
                     st.divider()
 
