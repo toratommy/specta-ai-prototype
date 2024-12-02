@@ -3,16 +3,24 @@ from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
-from datetime import datetime
+
+# Initialize session state variables
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+# Function to handle sign-out
+def sign_out():
+    st.session_state.logged_in = False
+    st.session_state.username = ""
 
 # Main App
 st.title("Specta AI")
 st.header("Customized, AI-Generated Sports Broadcast")
-st.divider()
+st.divider()  # Divider after the title and subtitle
 
-# Login Section and User State Handling (Unchanged)...
-
-# Main Content After Login
+# Login Section
 if st.session_state.logged_in:
     # Fetch NFL Schedule
     st.sidebar.header("Game Selection")
