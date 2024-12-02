@@ -26,33 +26,33 @@ def generate_game_summary(game_data):
 
     # Basic details for all games
     basic_details = f"""
-Game Summary: {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
-Date & Time: {game_data['Score']['DateTime']}
-Location: {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
-Broadcast: {game_data['Score']['Channel']}
-Weather Forecast: {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
+    Game Summary: {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
+    Date & Time: {game_data['Score']['DateTime']}
+    Location: {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
+    Broadcast: {game_data['Score']['Channel']}
+    Weather Forecast: {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
     """
 
     # Additional details based on game status
     if game_status == "not started":
         additional_details = f"""
-The {game_data['Score']['AwayTeam']} are set to face the {game_data['Score']['HomeTeam']} in this matchup. The {game_data['Score']['HomeTeam']} are currently {'favored' if game_data['Score']['PointSpread'] < 0 else 'underdogs'} by {abs(game_data['Score']['PointSpread'])} points. The over/under for this game is {game_data['Score']['OverUnder']} points.
+        The {game_data['Score']['AwayTeam']} are set to face the {game_data['Score']['HomeTeam']} in this matchup. The {game_data['Score']['HomeTeam']} are currently {'favored' if game_data['Score']['PointSpread'] < 0 else 'underdogs'} by {abs(game_data['Score']['PointSpread'])} points. The over/under for this game is {game_data['Score']['OverUnder']} points.
         """
     elif game_status == "in progress":
         additional_details = f"""
-The game is currently in progress. The {game_data['Score']['AwayTeam']} have scored {game_data['Score']['AwayScore'] or '0'} points, while the {game_data['Score']['HomeTeam']} have scored {game_data['Score']['HomeScore'] or '0'} points. The game is in the {game_data['Score']['Quarter'] or 'current'} quarter with {game_data['Score']['TimeRemaining'] or 'time remaining unavailable'} on the clock. Current odds suggest a {'tight' if game_data['Score']['PointSpreadAwayTeamMoneyLine'] > -150 else 'dominant'} performance.
+        The game is currently in progress. The {game_data['Score']['AwayTeam']} have scored {game_data['Score']['AwayScore'] or '0'} points, while the {game_data['Score']['HomeTeam']} have scored {game_data['Score']['HomeScore'] or '0'} points. The game is in the {game_data['Score']['Quarter'] or 'current'} quarter with {game_data['Score']['TimeRemaining'] or 'time remaining unavailable'} on the clock. Current odds suggest a {'tight' if game_data['Score']['PointSpreadAwayTeamMoneyLine'] > -150 else 'dominant'} performance.
         """
     else:  # Game Over
         additional_details = f"""
-The game is over. The final score was {game_data['Score']['AwayTeam']} {game_data['Score']['AwayScore']} - {game_data['Score']['HomeTeam']} {game_data['Score']['HomeScore']}. The {game_data['Score']['HomeTeam']} {'won' if game_data['Score']['HomeScore'] > game_data['Score']['AwayScore'] else 'lost'} this matchup at {game_data['Score']['StadiumDetails']['Name']}.
+        The game is over. The final score was {game_data['Score']['AwayTeam']} {game_data['Score']['AwayScore']} - {game_data['Score']['HomeTeam']} {game_data['Score']['HomeScore']}. The {game_data['Score']['HomeTeam']} {'won' if game_data['Score']['HomeScore'] > game_data['Score']['AwayScore'] else 'lost'} this matchup at {game_data['Score']['StadiumDetails']['Name']}.
         """
 
     # Combine details into a single prompt
     prompt = f"""
-{basic_details}
-{additional_details}
+    {basic_details}
+    {additional_details}
 
-Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup.
+    Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup.
     """
 
     # Call the OpenAI API using ChatCompletion
@@ -66,11 +66,11 @@ Generate an engaging game summary based on the information above, emphasizing re
             temperature=0.7,
             max_tokens=500
         )
-        return response["choices"][0]["message"]["content"].strip()
+        return response.choices[0].message.content.strip()
     except Exception as e:
         st.error(f"Failed to generate game summary: {e}")
         return "Error generating game summary."
-
+    
 def generate_broadcast(game_data, user_preferences):
     """
     Generates a customized broadcast for the selected game and user preferences 
