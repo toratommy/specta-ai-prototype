@@ -5,8 +5,8 @@ from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
-# Display the logo
-st.image("assets/logo.png", use_column_width=True)  # Adjust the path to your logo file
+# Add the logo to the top of the sidebar
+st.sidebar.image("assets/logo.png", use_column_width=True)  # Adjust the path to your logo file
 
 # Main App
 st.title("Specta AI")
