@@ -9,7 +9,8 @@ from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 st.sidebar.image("assets/logo.png", use_container_width=True)  # Adjust the path to your logo file
 
 # Main App
-st.title("Specta AI - Your AI Sports Viewing Companion")
+st.title("Specta AI")
+st.header("Your AI Sports Viewing Companion")
 st.divider()
 
 # Initialize session state variables
