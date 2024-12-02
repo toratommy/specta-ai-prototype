@@ -1,52 +1,33 @@
 import requests
 import streamlit as st
 
+# Base URL for the SportsDataIO Replay API
+BASE_URL = "https://replay.sportsdata.io/v3/nfl/scores/json/"
+
 def get_nfl_schedule():
     """
-    Fetches the NFL schedule for the current season using SportsDataIO.
-    Filters for games that are completed or live.
+    Fetches the NFL schedule from the SportsDataIO Replay API.
     """
-    api_key = st.secrets["api_keys"]["sportsdataio"]
-    url = "https://api.sportsdata.io/v3/nfl/scores/json/Schedules/2024"
-    headers = {"Ocp-Apim-Subscription-Key": api_key}
-    
+    url = f"{BASE_URL}Schedules"
+    headers = {"Ocp-Apim-Subscription-Key": st.secrets["api_keys"]["sportsdataio"]}
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        schedule = response.json()
-        st.write(schedule)  # Display schedule to verify the GameKey
-        
-        # Filter for completed or live games
-        filtered_schedule = [
-            game for game in schedule if game.get("Status") in ["Final", "Live"]
-        ]
-        return filtered_schedule
+        response.raise_for_status()  # Raise exception for HTTP errors
+        return response.json()
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to fetch NFL schedule: {e}")
-        return []
-
+        return None
 
 def get_game_details(game_key):
     """
-    Fetches detailed information for a specific NFL game using SportsDataIO.
-    Handles 404 errors gracefully.
+    Fetches detailed information for a specific NFL game from the SportsDataIO Replay API.
     """
-    api_key = st.secrets["api_keys"]["sportsdataio"]
-    url = f"https://api.sportsdata.io/v3/nfl/scores/json/BoxScore/{game_key}"
-    headers = {"Ocp-Apim-Subscription-Key": api_key}
-    
-    st.write(f"Fetching game details for GameKey: {game_key} ...")
+    url = f"{BASE_URL}BoxScore/{game_key}"
+    headers = {"Ocp-Apim-Subscription-Key": st.secrets["api_keys"]["sportsdataio"]}
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx, 5xx)
+        response.raise_for_status()
         return response.json()
-    except requests.exceptions.HTTPError as e:
-        if response.status_code == 404:
-            st.warning(f"No details available for GameKey: {game_key}. Please select a different game.")
-        else:
-            st.error(f"Failed to fetch game details for {game_key}: {e}")
-        return {}
     except requests.exceptions.RequestException as e:
-        st.error(f"Failed to connect to SportsDataIO: {e}")
-        return {}
-
+        st.error(f"Failed to fetch game details for {game_key}: {e}")
+        return None
