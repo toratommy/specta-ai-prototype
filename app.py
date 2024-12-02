@@ -5,6 +5,14 @@ from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
+# Display the logo
+st.image("assets/logo.png", use_column_width=True)  # Adjust the path to your logo file
+
+# Main App
+st.title("Specta AI")
+st.header("Customized, AI-Generated Sports Broadcast")
+st.divider()
+
 # Initialize session state variables
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -15,11 +23,6 @@ if "username" not in st.session_state:
 def sign_out():
     st.session_state.logged_in = False
     st.session_state.username = ""
-
-# Main App
-st.title("Specta AI")
-st.header("Customized, AI-Generated Sports Broadcast")
-st.divider()
 
 # Login Section
 if not st.session_state.logged_in:
@@ -49,7 +52,7 @@ if st.session_state.logged_in:
 
     if nfl_schedule:
         # Add a date selector
-        default_date = datetime(2024, 1, 1)
+        default_date = datetime(2024, 1, 20)
         selected_date = st.sidebar.date_input("Select Date:", value=default_date)
 
         # Filter games by the selected date
