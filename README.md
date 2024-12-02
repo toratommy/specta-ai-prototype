@@ -32,7 +32,8 @@ project_directory/
 ├── prompts/
 │   ├── game_summary_prompt.txt  # Template for game summary prompts
 │   ├── broadcast_prompt.txt     # Template for broadcast prompts
-├── secrets.toml             # Configuration for API keys and credentials
+├── .streamlit/
+│   └── secrets.toml         # Configuration for API keys and credentials
 └── README.md                # Project documentation
 ```
 
