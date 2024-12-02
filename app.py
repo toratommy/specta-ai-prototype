@@ -64,11 +64,15 @@ if st.session_state.logged_in:
             game_data = get_game_details(selected_score_id)
 
             if game_data:
+                # User input for temperature
+                temperature = st.sidebar.slider("Set the creativity level (temperature):", 0.0, 1.0, 0.7, 0.1)
+
                 # Generate and display game summary
-                st.write(f"### Game: {game_keys[selected_score_id]}")
-                game_summary = generate_game_summary(game_data)
-                st.write("#### Game Summary")
-                st.write(game_summary)
+                basic_details, game_summary = generate_game_summary(game_data, temperature)
+                st.write("#### Basic Game Details")
+                st.markdown(basic_details)
+                st.write("#### LLM-Generated Summary")
+                st.markdown(game_summary)
 
                 # Broadcast Customization Section
                 st.write("### Customize Your Broadcast")
