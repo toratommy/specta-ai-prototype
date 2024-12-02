@@ -2,6 +2,6 @@ The following summarizes the current state of the game:
 {box_score_json}
 
 Instructions:
-{instructions}
+{dynamic_instructions}
 
 Generate an engaging game summary based on the information above, emphasizing relevant and interesting details.
