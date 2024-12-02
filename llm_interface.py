@@ -2,15 +2,16 @@ import os
 from openai import OpenAI
 import streamlit as st
 
-def generate_game_summary(game_data):
+def generate_game_summary(game_data, temperature=0.7):
     """
     Generates a game summary using OpenAI's API based on the provided game data.
 
     Parameters:
         game_data (dict): Detailed box score data for the game.
+        temperature (float): Temperature setting for the LLM.
 
     Returns:
-        str: LLM-generated game summary.
+        tuple: Basic game details (str) and LLM-generated game summary (str).
     """
     # Initialize OpenAI client
     client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
@@ -24,11 +25,11 @@ def generate_game_summary(game_data):
 
     # Basic details for all games
     basic_details = f"""
-Game Summary: {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
-Date & Time: {game_data['Score']['DateTime']}
-Location: {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
-Broadcast: {game_data['Score']['Channel']}
-Weather Forecast: {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
+**Game Summary:** {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
+**Date & Time:** {game_data['Score']['DateTime']}
+**Location:** {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
+**Broadcast:** {game_data['Score']['Channel']}
+**Weather Forecast:** {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
     """
 
     # Additional details based on game status
@@ -61,15 +62,15 @@ Generate an engaging game summary based on the information above, emphasizing re
                 {"role": "system", "content": "You are a helpful assistant that generates engaging game summaries for sports matches."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=500
+            temperature=temperature,
+            max_tokens=350  # Limit to 350 tokens
         )
 
         # Extract and return the generated content
-        return chat_completion.choices[0].message.content.strip()
+        return basic_details, chat_completion.choices[0].message.content.strip()
     except Exception as e:
         st.error(f"Failed to generate game summary: {e}")
-        return "Error generating game summary."
+        return basic_details, "Error generating game summary."
 
 def generate_broadcast(game_data, user_preferences):
     """
