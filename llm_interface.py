@@ -63,7 +63,7 @@ Generate an engaging game summary based on the information above, emphasizing re
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
-            max_tokens=350  # Limit to 350 tokens
+            max_tokens=200  # Limit to 200 tokens
         )
 
         # Extract and return the generated content
