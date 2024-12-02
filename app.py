@@ -62,7 +62,7 @@ if st.session_state.logged_in:
 
             if game_data:
                 st.write(f"### Game: {game_keys[selected_game_key]}")
-                st.write(f"Date: {game_data.get('Day')}, Stadium: {game_data.get('Stadium', {}).get('Name', 'Unknown')}")
+                st.write(f"Date: {game_data.get('Date')}, Stadium: {game_data.get('Stadium', {}).get('Name', 'Unknown')}")
 
                 # Player selection
                 players = st.sidebar.multiselect(
@@ -94,3 +94,4 @@ if st.session_state.logged_in:
         st.error("Failed to fetch NFL schedule.")
 else:
     st.info("Please log in to access the app.")
+
