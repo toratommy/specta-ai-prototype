@@ -44,16 +44,16 @@ def summarize_game_data(filtered_game_data):
         filtered_game_data (dict): Filtered game data.
 
     Returns:
-        str: Summary of the game data.
+        str: Summary of the game data in bullet-point format.
     """
     return f"""
-    {filtered_game_data['Score']['AwayTeam']} vs {filtered_game_data['Score']['HomeTeam']}
-    Score: {filtered_game_data['Score']['AwayScore']} - {filtered_game_data['Score']['HomeScore']}
-    Quarter: {filtered_game_data['Score']['Quarter']}
-    Time Remaining: {filtered_game_data['Score']['TimeRemaining']}
-    Current Possession: {filtered_game_data['Score']['Possession']}
-    Last Play: {filtered_game_data['Score']['LastPlay']}
-    Stadium: {filtered_game_data['StadiumDetails']['Name']}, {filtered_game_data['StadiumDetails']['City']}, {filtered_game_data['StadiumDetails']['State']}
+    - **Teams**: {filtered_game_data['Score']['AwayTeam']} vs {filtered_game_data['Score']['HomeTeam']}
+    - **Score**: {filtered_game_data['Score']['AwayScore']} - {filtered_game_data['Score']['HomeScore']}
+    - **Quarter**: {filtered_game_data['Score']['Quarter']}
+    - **Time Remaining**: {filtered_game_data['Score']['TimeRemaining']}
+    - **Current Possession**: {filtered_game_data['Score']['Possession']}
+    - **Last Play**: {filtered_game_data['Score']['LastPlay']}
+    - **Stadium**: {filtered_game_data['StadiumDetails']['Name']}, {filtered_game_data['StadiumDetails']['City']}, {filtered_game_data['StadiumDetails']['State']}
     """
 
 def generate_game_summary(game_data, temperature=0.7):
