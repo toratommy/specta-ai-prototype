@@ -74,7 +74,7 @@ Generate an engaging game summary based on the information above, emphasizing re
             ],
             temperature=temperature,
             max_tokens=500,  # Limit to 250 tokens
-            stop=["\n\n"]  # Stop at natural paragraph boundaries
+            stop=["\n"]  # Stop at natural paragraph boundaries
         )
 
         # Extract and return the generated content
