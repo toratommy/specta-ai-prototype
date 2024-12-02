@@ -1,3 +1,4 @@
+import os
 from openai import OpenAI
 import streamlit as st
 
@@ -63,7 +64,9 @@ Generate an engaging game summary based on the information above, emphasizing re
             temperature=0.7,
             max_tokens=500
         )
-        return chat_completion["choices"][0]["message"]["content"].strip()
+
+        # Extract and return the generated content
+        return chat_completion.choices[0].message.content.strip()
     except Exception as e:
         st.error(f"Failed to generate game summary: {e}")
         return "Error generating game summary."
