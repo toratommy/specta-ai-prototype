@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 import streamlit as st
+import json
 
 def generate_game_summary(game_data, temperature=0.7):
     """
@@ -23,7 +24,7 @@ def generate_game_summary(game_data, temperature=0.7):
         else "over"
     )
 
-    # Basic details for all games
+    # Basic details for display
     basic_details = f"""
 **Game Summary:** {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
 **Date & Time:** {game_data['Score']['DateTime']}
@@ -32,26 +33,35 @@ def generate_game_summary(game_data, temperature=0.7):
 **Weather Forecast:** {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
     """
 
-    # Additional details based on game status
+    # Prepare full box score JSON for the LLM
+    box_score_json = json.dumps(game_data, indent=2)
+
+    # Add game status-specific instructions
     if game_status == "not started":
-        additional_details = f"""
-The {game_data['Score']['AwayTeam']} are set to face the {game_data['Score']['HomeTeam']} in this matchup. The {game_data['Score']['HomeTeam']} are currently {'favored' if game_data['Score']['PointSpread'] < 0 else 'underdogs'} by {abs(game_data['Score']['PointSpread'])} points. The over/under for this game is {game_data['Score']['OverUnder']} points.
-        """
+        game_status_instructions = (
+            "Summarize the matchup, including the teams, date, location, broadcast details, "
+            "weather, and key statistics such as point spread and over/under. Highlight pregame insights."
+        )
     elif game_status == "in progress":
-        additional_details = f"""
-The game is currently in progress. The {game_data['Score']['AwayTeam']} have scored {game_data['Score']['AwayScore'] or '0'} points, while the {game_data['Score']['HomeTeam']} have scored {game_data['Score']['HomeScore'] or '0'} points. The game is in the {game_data['Score']['Quarter'] or 'current'} quarter with {game_data['Score']['TimeRemaining'] or 'time remaining unavailable'} on the clock. Current odds suggest a {'tight' if game_data['Score']['PointSpreadAwayTeamMoneyLine'] > -150 else 'dominant'} performance.
-        """
+        game_status_instructions = (
+            "Summarize the current state of the game, including the score, quarter, time remaining, "
+            "key plays, and notable performances. Mention any ongoing trends or momentum shifts."
+        )
     else:  # Game Over
-        additional_details = f"""
-The game is over. The final score was {game_data['Score']['AwayTeam']} {game_data['Score']['AwayScore']} - {game_data['Score']['HomeTeam']} {game_data['Score']['HomeScore']}. The {game_data['Score']['HomeTeam']} {'won' if game_data['Score']['HomeScore'] > game_data['Score']['AwayScore'] else 'lost'} this matchup at {game_data['Score']['StadiumDetails']['Name']}.
-        """
+        game_status_instructions = (
+            "Summarize the final outcome of the game, including the final score, notable performances, "
+            "key moments, and overall game impact. Highlight any standout players or plays."
+        )
 
-    # Combine details into a single prompt
+    # Prompt for the LLM
     prompt = f"""
-{basic_details}
-{additional_details}
+The following is a detailed JSON representation of the box score for a sports game:
+{box_score_json}
 
-Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup.
+Instructions:
+{game_status_instructions}
+
+Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup, current game status, or final outcome as appropriate.
     """
 
     # Call the OpenAI API using the new client syntax
@@ -63,7 +73,8 @@ Generate an engaging game summary based on the information above, emphasizing re
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
-            max_tokens=200  # Limit to 200 tokens
+            max_tokens=250,  # Limit to 250 tokens
+            stop=["\n\n"]  # Stop at natural paragraph boundaries
         )
 
         # Extract and return the generated content
