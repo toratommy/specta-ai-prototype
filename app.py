@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime
 from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details
 from llm_interface import generate_game_summary, generate_broadcast
@@ -18,9 +19,28 @@ def sign_out():
 # Main App
 st.title("Specta AI")
 st.header("Customized, AI-Generated Sports Broadcast")
-st.divider()  # Divider after the title and subtitle
+st.divider()
 
 # Login Section
+if not st.session_state.logged_in:
+    st.sidebar.header("Login")
+    username = st.sidebar.text_input("Username", key="login_username")
+    password = st.sidebar.text_input("Password", type="password", key="login_password")
+
+    if st.sidebar.button("Login"):
+        if authenticate(username, password):
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.sidebar.success("Login successful!")
+        else:
+            st.sidebar.error("Invalid credentials.")
+else:
+    # Add a sign-out button when the user is logged in
+    st.sidebar.header(f"Welcome, {st.session_state.username}")
+    if st.sidebar.button("Sign Out"):
+        sign_out()
+
+# Main Content After Login
 if st.session_state.logged_in:
     # Fetch NFL Schedule
     st.sidebar.header("Game Selection")
