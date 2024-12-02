@@ -1,0 +1,7 @@
+Game Information:
+{game_info}
+
+User Preferences:
+{preferences}
+
+Generate a customized play-by-play broadcast tailored to the user's preferences, focusing on tone, storyline, and player interest.
