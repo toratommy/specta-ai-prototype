@@ -1,7 +1,7 @@
 import streamlit as st
 from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details
-from llm_interface import generate_broadcast
+from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
 # Initialize session state variables
@@ -64,26 +64,30 @@ if st.session_state.logged_in:
             game_data = get_game_details(selected_score_id)
 
             if game_data:
+                # Generate and display game summary
                 st.write(f"### Game: {game_keys[selected_score_id]}")
-                st.write(f"Date: {game_data['Score']['Date']}")
-                st.write(f"Stadium: {game_data['Score']['StadiumDetails']['Name']}")
-                st.write(f"City: {game_data['Score']['StadiumDetails']['City']}")
-                st.write(f"Forecast: {game_data['Score']['ForecastDescription']}")
+                game_summary = generate_game_summary(game_data)
+                st.write("#### Game Summary")
+                st.write(game_summary)
+
+                # Broadcast Customization Section
+                st.write("### Customize Your Broadcast")
+                
+                # Player selection
+                players = st.multiselect(
+                    "Select Players of Interest",
+                    [player["Name"] for player in game_data.get("HomeTeamPlayers", []) + game_data.get("AwayTeamPlayers", [])],
+                )
 
                 # Tone/Storyline input
-                user_prompt = st.sidebar.text_area(
+                user_prompt = st.text_area(
                     "Enter 1-2 sentences about how you'd like the broadcast tailored (e.g., tone, storyline)."
                 )
 
-                if st.sidebar.button("Generate Broadcast"):
+                if st.button("Generate Broadcast"):
                     # Prepare input for LLM
-                    game_info = {
-                        "away_team": game_data["Score"]["AwayTeam"],
-                        "home_team": game_data["Score"]["HomeTeam"],
-                        "stadium": game_data["Score"]["StadiumDetails"]["Name"],
-                        "forecast": game_data["Score"]["ForecastDescription"],
-                    }
-                    preferences = {"prompt": user_prompt}
+                    game_info = prepare_game_info(game_keys[selected_score_id], game_data)
+                    preferences = prepare_user_preferences(game_keys[selected_score_id], players, user_prompt)
 
                     # Generate Broadcast
                     broadcast = generate_broadcast(game_info, preferences)

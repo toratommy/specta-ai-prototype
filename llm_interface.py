@@ -4,6 +4,70 @@ import openai
 import json
 import streamlit as st
 
+def generate_game_summary(game_data):
+    """
+    Generates a game summary using OpenAI's API based on the provided game data.
+
+    Parameters:
+        game_data (dict): Detailed box score data for the game.
+
+    Returns:
+        str: LLM-generated game summary.
+    """
+    # Set API key from Streamlit secrets
+    openai.api_key = st.secrets["api_keys"]["openai"]
+
+    # Determine the game status (Not Started, In Progress, Over)
+    game_status = (
+        "not started" if not game_data["Score"]["HasStarted"]
+        else "in progress" if game_data["Score"]["IsInProgress"]
+        else "over"
+    )
+
+    # Basic details for all games
+    basic_details = f"""
+Game Summary: {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
+Date & Time: {game_data['Score']['DateTime']}
+Location: {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
+Broadcast: {game_data['Score']['Channel']}
+Weather Forecast: {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
+    """
+
+    # Additional details based on game status
+    if game_status == "not started":
+        additional_details = f"""
+The {game_data['Score']['AwayTeam']} are set to face the {game_data['Score']['HomeTeam']} in this matchup. The {game_data['Score']['HomeTeam']} are currently {'favored' if game_data['Score']['PointSpread'] < 0 else 'underdogs'} by {abs(game_data['Score']['PointSpread'])} points. The over/under for this game is {game_data['Score']['OverUnder']} points.
+        """
+    elif game_status == "in progress":
+        additional_details = f"""
+The game is currently in progress. The {game_data['Score']['AwayTeam']} have scored {game_data['Score']['AwayScore'] or '0'} points, while the {game_data['Score']['HomeTeam']} have scored {game_data['Score']['HomeScore'] or '0'} points. The game is in the {game_data['Score']['Quarter'] or 'current'} quarter with {game_data['Score']['TimeRemaining'] or 'time remaining unavailable'} on the clock. Current odds suggest a {'tight' if game_data['Score']['PointSpreadAwayTeamMoneyLine'] > -150 else 'dominant'} performance.
+        """
+    else:  # Game Over
+        additional_details = f"""
+The game is over. The final score was {game_data['Score']['AwayTeam']} {game_data['Score']['AwayScore']} - {game_data['Score']['HomeTeam']} {game_data['Score']['HomeScore']}. The {game_data['Score']['HomeTeam']} {'won' if game_data['Score']['HomeScore'] > game_data['Score']['AwayScore'] else 'lost'} this matchup at {game_data['Score']['StadiumDetails']['Name']}.
+        """
+
+    # Combine details into a single prompt
+    prompt = f"""
+{basic_details}
+{additional_details}
+
+Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup.
+    """
+
+    # Call the OpenAI API
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=500,
+            temperature=0.7
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        st.error(f"Failed to generate game summary: {e}")
+        return "Error generating game summary."
+
 def generate_broadcast(game_data, user_preferences):
     """
     Generates a customized broadcast for the selected game and user preferences 
