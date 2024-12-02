@@ -55,15 +55,18 @@ The game is over. The final score was {game_data['Score']['AwayTeam']} {game_dat
 Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup.
     """
 
-    # Call the OpenAI API
+    # Call the OpenAI API using ChatCompletion
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=500,
-            temperature=0.7
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that generates engaging game summaries for sports matches."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
         )
-        return response.choices[0].text.strip()
+        return response["choices"][0]["message"]["content"].strip()
     except Exception as e:
         st.error(f"Failed to generate game summary: {e}")
         return "Error generating game summary."
