@@ -3,6 +3,54 @@ from openai import OpenAI
 import streamlit as st
 import json
 
+def filter_relevant_game_data(game_data):
+    """
+    Filters the relevant fields from the game data JSON for games in progress or over.
+
+    Parameters:
+        game_data (dict): Full game data JSON.
+
+    Returns:
+        dict: Filtered game data.
+    """
+    return {
+        "Score": {
+            "AwayTeam": game_data["Score"]["AwayTeam"],
+            "HomeTeam": game_data["Score"]["HomeTeam"],
+            "AwayScore": game_data["Score"]["AwayScore"],
+            "HomeScore": game_data["Score"]["HomeScore"],
+            "Quarter": game_data["Score"]["Quarter"],
+            "TimeRemaining": game_data["Score"]["TimeRemaining"],
+            "Possession": game_data["Score"]["Possession"],
+            "LastPlay": game_data["Score"].get("LastPlay", ""),
+        },
+        "StadiumDetails": {
+            "Name": game_data["Score"]["StadiumDetails"]["Name"],
+            "City": game_data["Score"]["StadiumDetails"]["City"],
+            "State": game_data["Score"]["StadiumDetails"]["State"],
+        },
+    }
+
+def summarize_game_data(filtered_game_data):
+    """
+    Creates a summarized string from the filtered game data for the LLM prompt.
+
+    Parameters:
+        filtered_game_data (dict): Filtered game data.
+
+    Returns:
+        str: Summary of the game data.
+    """
+    return f"""
+    {filtered_game_data['Score']['AwayTeam']} vs {filtered_game_data['Score']['HomeTeam']}
+    Score: {filtered_game_data['Score']['AwayScore']} - {filtered_game_data['Score']['HomeScore']}
+    Quarter: {filtered_game_data['Score']['Quarter']}
+    Time Remaining: {filtered_game_data['Score']['TimeRemaining']}
+    Current Possession: {filtered_game_data['Score']['Possession']}
+    Last Play: {filtered_game_data['Score']['LastPlay']}
+    Stadium: {filtered_game_data['StadiumDetails']['Name']}, {filtered_game_data['StadiumDetails']['City']}, {filtered_game_data['StadiumDetails']['State']}
+    """
+
 def generate_game_summary(game_data, temperature=0.7):
     """
     Generates a game summary using OpenAI's API based on the provided game data.
@@ -17,70 +65,57 @@ def generate_game_summary(game_data, temperature=0.7):
     # Initialize OpenAI client
     client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
 
-    # Determine the game status (Not Started, In Progress, Over)
+    # Determine the game status
     game_status = (
         "not started" if not game_data["Score"]["HasStarted"]
         else "in progress" if game_data["Score"]["IsInProgress"]
         else "over"
     )
 
-    # Basic details for display
-    basic_details = f"""
-**Game Summary:** {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
-**Date & Time:** {game_data['Score']['DateTime']}
-**Location:** {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
-**Broadcast:** {game_data['Score']['Channel']}
-**Weather Forecast:** {game_data['Score']['ForecastDescription']}, Temperature: {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
-    """
-
-    # Prepare full box score JSON for the LLM
-    box_score_json = json.dumps(game_data, indent=2)
-
-    # Add game status-specific instructions
+    # Handle summarization based on game status
     if game_status == "not started":
-        game_status_instructions = (
+        box_score_json = json.dumps(game_data, indent=2)
+        instructions = (
             "Summarize the matchup, including the teams, date, location, broadcast details, "
             "weather, and key statistics such as point spread and over/under. Highlight pregame insights."
         )
-    elif game_status == "in progress":
-        game_status_instructions = (
-            "Summarize the current state of the game, including the score, quarter, time remaining, "
-            "key plays, and notable performances. Mention any ongoing trends or momentum shifts."
-        )
-    else:  # Game Over
-        game_status_instructions = (
-            "Summarize the final outcome of the game, including the final score, notable performances, "
-            "key moments, and overall game impact. Highlight any standout players or plays."
+    else:
+        # Summarize and filter for in-progress or over games
+        filtered_game_data = filter_relevant_game_data(game_data)
+        summarized_data = summarize_game_data(filtered_game_data)
+        box_score_json = summarized_data
+        instructions = (
+            "For games in progress, summarize the current state of the game, including the score, "
+            "quarter, time remaining, and notable plays. Highlight trends or momentum shifts.\n"
+            "For games that are over, summarize the final outcome, key moments, and standout performances."
         )
 
-    # Prompt for the LLM
+    # Construct the prompt
     prompt = f"""
-The following is a detailed JSON representation of the box score for a sports game:
-{box_score_json}
+    The following summarizes the current state of the game:
+    {box_score_json}
 
-Instructions:
-{game_status_instructions}
+    Instructions:
+    {instructions}
 
-Generate an engaging game summary based on the information above, emphasizing relevant and interesting details about the matchup, current game status, or final outcome as appropriate.
+    Generate an engaging game summary based on the information above, emphasizing relevant and interesting details.
     """
 
-    # Call the OpenAI API using the new client syntax
+    # Call the OpenAI API
     try:
         chat_completion = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that generates engaging game summaries for sports matches."},
+                {"role": "system", "content": "You are a helpful assistant generating sports game summaries."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
-            max_tokens=350,  # Limit to 250 tokens
+            max_tokens=350,  # Limit to 350 tokens for richer summaries
         )
-
-        # Extract and return the generated content
-        return basic_details, chat_completion.choices[0].message.content.strip()
+        return box_score_json, chat_completion.choices[0].message.content.strip()
     except Exception as e:
         st.error(f"Failed to generate game summary: {e}")
-        return basic_details, "Error generating game summary."
+        return box_score_json, "Error generating game summary."
 
 def generate_broadcast(game_data, user_preferences):
     """

@@ -71,17 +71,9 @@ if st.session_state.logged_in:
                 # Generate and display game summary
                 basic_details, game_summary = generate_game_summary(game_data, temperature)
                 st.write("### Game Summary")
-                st.markdown(
-                    f"""
-                    - **Teams**: {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
-                    - **Date & Time**: {game_data['Score']['DateTime']}
-                    - **Location**: {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
-                    - **Broadcast**: {game_data['Score']['Channel']}
-                    - **Weather**: {game_data['Score']['ForecastDescription']}, {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
-                    """
-                )
+                st.markdown(basic_details)
                 st.write(game_summary)
-                st.divider()  # Divider after the game summary
+                st.divider()
 
                 # Broadcast Customization Section
                 st.write("### Customize Your Broadcast")
