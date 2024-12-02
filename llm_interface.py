@@ -79,6 +79,14 @@ def generate_game_summary(game_data, temperature=0.7):
             "Summarize the matchup, including the teams, date, location, broadcast details, "
             "weather, and key statistics such as point spread and over/under. Highlight pregame insights."
         )
+        # Basic game details for display
+        basic_details = f"""
+- **Teams**: {game_data['Score']['AwayTeam']} vs. {game_data['Score']['HomeTeam']}
+- **Date & Time**: {game_data['Score']['DateTime']}
+- **Location**: {game_data['Score']['StadiumDetails']['Name']}, {game_data['Score']['StadiumDetails']['City']}, {game_data['Score']['StadiumDetails']['State']}
+- **Broadcast**: {game_data['Score']['Channel']}
+- **Weather Forecast**: {game_data['Score']['ForecastDescription']}, {game_data['Score']['ForecastTempHigh']}°F, Wind: {game_data['Score']['ForecastWindSpeed']} mph
+        """
     else:
         # Summarize and filter for in-progress or over games
         filtered_game_data = filter_relevant_game_data(game_data)
@@ -89,6 +97,15 @@ def generate_game_summary(game_data, temperature=0.7):
             "quarter, time remaining, and notable plays. Highlight trends or momentum shifts.\n"
             "For games that are over, summarize the final outcome, key moments, and standout performances."
         )
+        # Basic game details for display
+        basic_details = f"""
+- **Teams**: {filtered_game_data['Score']['AwayTeam']} vs. {filtered_game_data['Score']['HomeTeam']}
+- **Score**: {filtered_game_data['Score']['AwayScore']} - {filtered_game_data['Score']['HomeScore']}
+- **Quarter**: {filtered_game_data['Score']['Quarter']}
+- **Time Remaining**: {filtered_game_data['Score']['TimeRemaining']}
+- **Possession**: {filtered_game_data['Score']['Possession']}
+- **Stadium**: {filtered_game_data['StadiumDetails']['Name']}, {filtered_game_data['StadiumDetails']['City']}, {filtered_game_data['StadiumDetails']['State']}
+        """
 
     # Construct the prompt
     prompt = f"""
@@ -112,10 +129,10 @@ def generate_game_summary(game_data, temperature=0.7):
             temperature=temperature,
             max_tokens=350,  # Limit to 350 tokens for richer summaries
         )
-        return box_score_json, chat_completion.choices[0].message.content.strip()
+        return basic_details, chat_completion.choices[0].message.content.strip()
     except Exception as e:
         st.error(f"Failed to generate game summary: {e}")
-        return box_score_json, "Error generating game summary."
+        return basic_details, "Error generating game summary."
 
 def generate_broadcast(game_data, user_preferences):
     """
