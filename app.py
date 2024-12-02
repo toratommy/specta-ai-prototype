@@ -46,13 +46,16 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule()
 
     if nfl_schedule:
-        # Create a dictionary of game keys and their descriptions
-        game_keys = {game["GameKey"]: f"{game['HomeTeam']} vs {game['AwayTeam']}" for game in nfl_schedule}
+        # Create a dictionary of game keys and their descriptions with game date
+        game_keys = {
+            game["GameKey"]: f"{game['AwayTeam']} vs {game['HomeTeam']} ({game['Date'][:10]})"
+            for game in nfl_schedule
+        }
         options = ["Select a Game"] + list(game_keys.keys())
         selected_game_key = st.sidebar.selectbox(
             "Select Game",
             options=options,
-            format_func=lambda x: game_keys.get(x, x),  # Display the game name or placeholder
+            format_func=lambda x: game_keys.get(x, x),  # Display the game name with date or placeholder
         )
 
         # Ensure a valid game is selected before proceeding
