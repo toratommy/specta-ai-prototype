@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime
 from utils.auth import authenticate
-from sports_data import get_nfl_schedule, get_game_details, get_players_by_team
+from sports_data import get_nfl_schedule, get_game_details, get_players_by_game
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
@@ -90,23 +90,15 @@ if st.session_state.logged_in:
                     # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
 
-                    # Prepare player dropdown with team names
-                    home_team = game_data["HomeTeam"]
-                    away_team = game_data["AwayTeam"]
-
-                    # Fetch player data for both teams
-                    home_team_players = get_players_by_team(home_team)
-                    away_team_players = get_players_by_team(away_team)
-
-                    all_players = [
-                        f"{player['Name']} ({home_team})" for player in home_team_players
-                    ] + [
-                        f"{player['Name']} ({away_team})" for player in away_team_players
+                    # Fetch players for the selected game
+                    players = get_players_by_game(selected_score_id)
+                    player_options = [
+                        f"{player['Name']} ({player['Team']})" for player in players
                     ]
 
                     # Player selection
                     selected_players = st.multiselect(
-                        "Select Players of Interest", all_players, help="Choose players from both teams."
+                        "Select Players of Interest", player_options, help="Choose players from both teams."
                     )
 
                     # Tone/Storyline input
@@ -135,3 +127,4 @@ if st.session_state.logged_in:
         st.error("Failed to fetch NFL schedule.")
 else:
     st.info("Please log in to access the app.")
+
