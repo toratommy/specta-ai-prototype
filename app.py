@@ -75,7 +75,7 @@ if st.session_state.logged_in:
             if selected_score_id != "Select a Game":
                 # Fetch game details
                 game_data = get_game_details(selected_score_id)
-
+                st.write(game_data)
                 if game_data:
                     # Safeguard for HomeTeam and AwayTeam
                     home_team = game_data.get("HomeTeam", "Unknown Team")
