@@ -87,26 +87,32 @@ if st.session_state.logged_in:
                     st.write(game_summary)
                     st.divider()
 
-                    # Fetch and display player profiles
+                    # Prepare player dropdown with team names
                     st.sidebar.header("Player Profiles")
-                    team_choice = st.sidebar.radio("Select a Team:", ["Home Team", "Away Team"])
-                    selected_team = (
-                        game_data["HomeTeam"] if team_choice == "Home Team" else game_data["AwayTeam"]
-                    )
-                    players = get_players_by_team(selected_team)
+                    home_team = game_data["HomeTeam"]
+                    away_team = game_data["AwayTeam"]
 
-                    if players:
-                        player_list = [
-                            f"{player['Name']} - {player['Position']} ({player['Status']})"
-                            for player in players
-                        ]
-                        selected_players = st.sidebar.multiselect("Select Players:", player_list)
+                    # Fetch player data for both teams
+                    home_team_players = get_players_by_team(home_team)
+                    away_team_players = get_players_by_team(away_team)
+
+                    all_players = [
+                        {"name": f"{player['Name']} ({home_team})", "data": player} for player in home_team_players
+                    ] + [
+                        {"name": f"{player['Name']} ({away_team})", "data": player} for player in away_team_players
+                    ]
+
+                    # Show all players in dropdown
+                    if all_players:
+                        player_names = [player["name"] for player in all_players]
+                        selected_players = st.sidebar.multiselect("Select Players:", player_names)
+
                         if selected_players:
                             st.write("### Selected Players")
-                            for player in selected_players:
-                                st.markdown(f"- {player}")
+                            for player_name in selected_players:
+                                st.markdown(f"- {player_name}")
                     else:
-                        st.sidebar.warning("No player data available for the selected team.")
+                        st.sidebar.warning("No player data available for the selected teams.")
 
                     # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
