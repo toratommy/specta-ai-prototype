@@ -89,7 +89,7 @@ if st.session_state.logged_in:
                     st.write("### Customized Play-by-Play Broadcast")
 
                     # Player selection fragment
-                    @st.experimental_fragment 
+                    @st.fragment 
                     def player_selections():
                         all_players = [
                             f"{player['Name']} ({player['Position']}, {player['Team']})"
