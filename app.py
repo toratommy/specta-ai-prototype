@@ -77,6 +77,10 @@ if st.session_state.logged_in:
                 game_data = get_game_details(selected_score_id)
 
                 if game_data:
+                    # Safeguard for HomeTeam and AwayTeam
+                    home_team = game_data.get("HomeTeam", "Unknown Team")
+                    away_team = game_data.get("AwayTeam", "Unknown Team")
+
                     # User input for temperature
                     temperature = st.sidebar.slider("Set the creativity level (temperature):", 0.0, 1.0, 0.7, 0.1)
 
@@ -90,13 +94,9 @@ if st.session_state.logged_in:
                     # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
 
-                    # Prepare player dropdown with team names
-                    home_team = game_data.get("HomeTeam", "Unknown Team")
-                    away_team = game_data.get("AwayTeam", "Unknown Team")
-
                     # Fetch player data for both teams
-                    home_team_players = get_players_by_team(home_team)
-                    away_team_players = get_players_by_team(away_team)
+                    home_team_players = get_players_by_team(home_team) if home_team != "Unknown Team" else []
+                    away_team_players = get_players_by_team(away_team) if away_team != "Unknown Team" else []
 
                     all_players = [
                         f"{player['Name']} ({home_team})" for player in home_team_players
