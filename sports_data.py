@@ -32,16 +32,19 @@ def get_game_details(score_id):
         st.error(f"Failed to fetch game details for ScoreID {score_id}: {e}")
         return None
 
-def get_players_by_team(team_code):
+def get_players_by_team(team):
     """
-    Fetches basic player information for a specific team from the SportsDataIO Replay API.
+    Fetches players for a specific team from the SportsDataIO Replay API.
+    The team parameter must be in lowercase.
     """
-    url = f"{BASE_URL}scores/json/playersbasic/{team_code}"
+    team_lower = team.lower()  # Ensure the team name is lowercase
+    url = f"{BASE_URL}scores/json/playersbasic/{team_lower}"
     params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()
+        response.raise_for_status()  # Raise exception for HTTP errors
         return response.json()
     except requests.exceptions.RequestException as e:
-        st.error(f"Failed to fetch players for team {team_code}: {e}")
-        return []
+        st.error(f"Failed to fetch players for team {team}: {e}")
+        st.write("Response details:", response.text if response else "No response")
+        return None
