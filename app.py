@@ -1,4 +1,3 @@
-# Updated app.py with the requested changes
 import streamlit as st
 from datetime import datetime
 from utils.auth import authenticate
@@ -7,7 +6,7 @@ from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
 # Add the logo to the top of the sidebar
-st.sidebar.image("assets/logo.png", use_container_width=True)
+st.sidebar.image("assets/logo.png", use_container_width=True)  # Adjust the path to your logo file
 
 # Main App
 st.title("Specta AI")
@@ -19,17 +18,11 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "game_data" not in st.session_state:
-    st.session_state.game_data = None
-if "game_summary" not in st.session_state:
-    st.session_state.game_summary = None
 
 # Function to handle sign-out
 def sign_out():
     st.session_state.logged_in = False
     st.session_state.username = ""
-    st.session_state.game_data = None
-    st.session_state.game_summary = None
 
 # Login Section
 if not st.session_state.logged_in:
@@ -75,51 +68,38 @@ if st.session_state.logged_in:
             selected_score_id = st.sidebar.selectbox(
                 "Select Game",
                 options=options,
-                format_func=lambda x: game_keys.get(x, x),
+                format_func=lambda x: game_keys.get(x, x),  # Display the game name or placeholder
             )
 
             # Ensure a valid game is selected before proceeding
             if selected_score_id != "Select a Game":
-                # Fetch game details only if not already fetched
-                if st.session_state.game_data is None or st.session_state.game_data["ScoreID"] != selected_score_id:
-                    st.session_state.game_data = get_game_details(selected_score_id)
-                    st.session_state.game_summary = None  # Reset summary if new game is selected
-
-                game_data = st.session_state.game_data
+                # Fetch game details
+                game_data = get_game_details(selected_score_id)
 
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
 
-                    # Generate and display game summary if not already generated
-                    if st.session_state.game_summary is None:
-                        temperature = st.sidebar.slider("Set the creativity level (temperature):", 0.0, 1.0, 0.7, 0.1)
-                        basic_details, game_summary = generate_game_summary(game_data, temperature)
-                        st.session_state.game_summary = (basic_details, game_summary)
-
-                    basic_details, game_summary = st.session_state.game_summary
+                    # Generate and display game summary
                     st.write("### Game Summary")
-                    st.markdown(basic_details, unsafe_allow_html=True)
-                    st.write(game_summary)
+                    st.markdown(f"**{home_team} vs {away_team}**")
                     st.divider()
 
-                    # Fetch players for both teams
-                    home_players = get_players_by_team(home_team)
-                    away_players = get_players_by_team(away_team)
-
-                    # Prepare player dropdown with position and team info
-                    player_options = [
-                        f"{player['Name']} ({player['Position']} - {player['Team']})"
-                        for player in home_players + away_players
-                    ]
-
+                    # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
 
-                    # Player selection
-                    selected_players = st.multiselect(
-                        "Select Players of Interest",
-                        player_options,
-                    )
+                    # Player selection fragment
+                    with st.experimental_fragment("player-selection"):
+                        all_players = [
+                            f"{player['Name']} ({player['Position']}, {player['Team']})"
+                            for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                        ]
+                        selected_players = st.multiselect("Select Players of Interest", all_players)
+
+                    # Display the selected players
+                    if selected_players:
+                        st.write("Selected Players:")
+                        st.write(", ".join(selected_players))
 
                     # Tone/Storyline input
                     user_prompt = st.text_area(
