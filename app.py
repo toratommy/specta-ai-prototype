@@ -78,7 +78,7 @@ if st.session_state.logged_in:
                 #st.write(game_data)
 
                 if game_data:
-                    # Safeguard for HomeTeam and AwayTeam
+                    # Get HomeTeam and AwayTeam
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
 
