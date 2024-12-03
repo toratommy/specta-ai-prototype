@@ -87,8 +87,10 @@ if st.session_state.logged_in:
                     st.write(game_summary)
                     st.divider()
 
+                    # Broadcast Customization Section
+                    st.write("### Customized Play-by-Play Broadcast")
+
                     # Prepare player dropdown with team names
-                    st.sidebar.header("Player Profiles")
                     home_team = game_data["HomeTeam"]
                     away_team = game_data["AwayTeam"]
 
@@ -97,25 +99,15 @@ if st.session_state.logged_in:
                     away_team_players = get_players_by_team(away_team)
 
                     all_players = [
-                        {"name": f"{player['Name']} ({home_team})", "data": player} for player in home_team_players
+                        f"{player['Name']} ({home_team})" for player in home_team_players
                     ] + [
-                        {"name": f"{player['Name']} ({away_team})", "data": player} for player in away_team_players
+                        f"{player['Name']} ({away_team})" for player in away_team_players
                     ]
 
-                    # Show all players in dropdown
-                    if all_players:
-                        player_names = [player["name"] for player in all_players]
-                        selected_players = st.sidebar.multiselect("Select Players:", player_names)
-
-                        if selected_players:
-                            st.write("### Selected Players")
-                            for player_name in selected_players:
-                                st.markdown(f"- {player_name}")
-                    else:
-                        st.sidebar.warning("No player data available for the selected teams.")
-
-                    # Broadcast Customization Section
-                    st.write("### Customized Play-by-Play Broadcast")
+                    # Player selection
+                    selected_players = st.multiselect(
+                        "Select Players of Interest", all_players, help="Choose players from both teams."
+                    )
 
                     # Tone/Storyline input
                     user_prompt = st.text_area(
