@@ -70,6 +70,9 @@ if st.session_state.logged_in:
                 options=options,
                 format_func=lambda x: game_keys.get(x, x),  # Display the game name or placeholder
             )
+            
+            # User input for temperature
+            temperature = st.sidebar.slider("Set the creativity level (temperature):", 0.0, 1.0, 0.7, 0.1)
 
             # Ensure a valid game is selected before proceeding
             if selected_score_id != "Select a Game":
@@ -81,8 +84,10 @@ if st.session_state.logged_in:
                     away_team = game_data["Score"]["AwayTeam"]
 
                     # Generate and display game summary
+                    basic_details, game_summary = generate_game_summary(game_data, temperature)
                     st.write("### Game Summary")
-                    st.markdown(f"**{home_team} vs {away_team}**")
+                    st.markdown(basic_details, unsafe_allow_html=True)
+                    st.write(game_summary)
                     st.divider()
 
                     # Broadcast Customization Section
