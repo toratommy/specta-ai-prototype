@@ -1,7 +1,7 @@
 import streamlit as st
 from datetime import datetime
 from utils.auth import authenticate
-from sports_data import get_nfl_schedule, get_game_details
+from sports_data import get_nfl_schedule, get_game_details, get_players_by_team
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
 
@@ -87,14 +87,29 @@ if st.session_state.logged_in:
                     st.write(game_summary)
                     st.divider()
 
+                    # Fetch and display player profiles
+                    st.sidebar.header("Player Profiles")
+                    team_choice = st.sidebar.radio("Select a Team:", ["Home Team", "Away Team"])
+                    selected_team = (
+                        game_data["HomeTeam"] if team_choice == "Home Team" else game_data["AwayTeam"]
+                    )
+                    players = get_players_by_team(selected_team)
+
+                    if players:
+                        player_list = [
+                            f"{player['Name']} - {player['Position']} ({player['Status']})"
+                            for player in players
+                        ]
+                        selected_players = st.sidebar.multiselect("Select Players:", player_list)
+                        if selected_players:
+                            st.write("### Selected Players")
+                            for player in selected_players:
+                                st.markdown(f"- {player}")
+                    else:
+                        st.sidebar.warning("No player data available for the selected team.")
+
                     # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
-
-                    # Player selection
-                    players = st.multiselect(
-                        "Select Players of Interest",
-                        [player["Name"] for player in game_data.get("HomeTeamPlayers", []) + game_data.get("AwayTeamPlayers", [])],
-                    )
 
                     # Tone/Storyline input
                     user_prompt = st.text_area(
@@ -104,7 +119,7 @@ if st.session_state.logged_in:
                     if st.button("Start Play-by-Play Broadcast"):
                         # Prepare input for LLM
                         game_info = prepare_game_info(game_keys[selected_score_id], game_data)
-                        preferences = prepare_user_preferences(game_keys[selected_score_id], players, user_prompt)
+                        preferences = prepare_user_preferences(game_keys[selected_score_id], selected_players, user_prompt)
 
                         # Generate Broadcast
                         broadcast = generate_broadcast(game_info, preferences)
