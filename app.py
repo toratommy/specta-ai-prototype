@@ -98,7 +98,7 @@ if st.session_state.logged_in:
                         selected_players = st.multiselect("Select Players of Interest", all_players)
                         return selected_players
 
-                    selected_players = player_selections
+                    selected_players = player_selections()
 
                     # Display the selected players
                     if selected_players:
