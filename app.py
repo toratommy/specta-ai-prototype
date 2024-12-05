@@ -77,57 +77,58 @@ if st.session_state.logged_in:
             # Ensure a valid game is selected before proceeding
             if selected_score_id != "Select a Game":
                 # Fetch game details
-                game_data = get_game_details(selected_score_id)
+                with st.spinner("Fetching game details and generating summary..."):
+                    game_data = get_game_details(selected_score_id)
 
-                if game_data:
-                    home_team = game_data["Score"]["HomeTeam"]
-                    away_team = game_data["Score"]["AwayTeam"]
+                    if game_data:
+                        home_team = game_data["Score"]["HomeTeam"]
+                        away_team = game_data["Score"]["AwayTeam"]
 
-                    # Generate and display game summary
-                    basic_details, game_summary = generate_game_summary(game_data, temperature)
-                    st.write("### Game Summary")
-                    st.markdown(basic_details, unsafe_allow_html=True)
-                    st.write(game_summary)
-                    st.divider()
+                        # Generate and display game summary
+                        basic_details, game_summary = generate_game_summary(game_data, temperature)
+                        st.write("### Game Summary")
+                        st.markdown(basic_details, unsafe_allow_html=True)
+                        st.write(game_summary)
+                        st.divider()
 
-                    # Broadcast Customization Section
-                    st.write("### Customized Play-by-Play Broadcast")
+                        # Broadcast Customization Section
+                        st.write("### Customized Play-by-Play Broadcast")
 
-                    # Player selection fragment
-                    @st.fragment 
-                    def player_selections():
-                        all_players = [
-                            f"{player['Name']} ({player['Position']}, {player['Team']})"
-                            for player in get_players_by_team(home_team) + get_players_by_team(away_team)
-                        ]
-                        selected_players = st.multiselect("Select Players of Interest", all_players)
-                        return selected_players
+                        # Player selection fragment
+                        @st.fragment 
+                        def player_selections():
+                            all_players = [
+                                f"{player['Name']} ({player['Position']}, {player['Team']})"
+                                for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                            ]
+                            selected_players = st.multiselect("Select Players of Interest", all_players)
+                            return selected_players
 
-                    selected_players = player_selections()
+                        selected_players = player_selections()
 
-                    # Display the selected players
-                    if selected_players:
-                        st.write("Selected Players:")
-                        st.write(", ".join(selected_players))
+                        # Display the selected players
+                        if selected_players:
+                            st.write("Selected Players:")
+                            st.write(", ".join(selected_players))
 
-                    # Tone/Storyline input
-                    user_prompt = st.text_area(
-                        "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored (e.g., tone, storyline)."
-                    )
+                        # Tone/Storyline input
+                        user_prompt = st.text_area(
+                            "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored (e.g., tone, storyline)."
+                        )
 
-                    if st.button("Start Play-by-Play Broadcast"):
-                        # Prepare input for LLM
-                        game_info = prepare_game_info(game_keys[selected_score_id], game_data)
-                        preferences = prepare_user_preferences(game_keys[selected_score_id], selected_players, user_prompt)
+                        if st.button("Start Play-by-Play Broadcast"):
+                            # Prepare input for LLM
+                            game_info = prepare_game_info(game_keys[selected_score_id], game_data)
+                            preferences = prepare_user_preferences(game_keys[selected_score_id], selected_players, user_prompt)
 
-                        # Generate Broadcast
-                        broadcast = generate_broadcast(game_info, preferences)
+                            # Generate Broadcast
+                            broadcast = generate_broadcast(game_info, preferences)
 
-                        # Display Broadcast
-                        st.write("### Customized Play-by-Play Broadcast Output")
-                        st.write(broadcast)
-                else:
-                    st.error("Failed to fetch game details.")
+                            # Display Broadcast
+                            st.write("### Customized Play-by-Play Broadcast Output")
+                            st.write(broadcast)
+                    else:
+                        st.error("Failed to fetch game details.")
             else:
                 st.warning("Please select a game to proceed.")
         else:
