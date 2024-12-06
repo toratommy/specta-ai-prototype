@@ -94,7 +94,7 @@ def get_play_by_play_delta(minutes):
         st.error("Unable to determine current season or week.")
         return None
 
-    url = f"{BASE_URL}pbp/json/playbyplaydelta/{season}/{week}/{minutes}"
+    url = f"{BASE_URL}pbp/json/playbyplaydelta/{season}post/{week}/{minutes}"
     params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
