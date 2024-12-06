@@ -76,30 +76,38 @@ def get_current_week():
         st.error(f"Failed to fetch the current week: {e}")
         return None
 
-def get_play_by_play_delta(minutes):
+def get_play_by_play(game_id):
     """
-    Fetches live play-by-play data using the SportsDataIO Play-by-Play Delta API.
-    Automatically determines the current season and week.
+    Fetches all plays for a specific game from the SportsDataIO Replay API.
 
     Parameters:
-        minutes (int): The time window in minutes to fetch recent play-by-play data.
+        game_id (int): Global Game ID.
 
     Returns:
-        list: A list of play-by-play data updates.
+        dict: Play-by-play data for the game.
     """
-    season = get_current_season()
-    week = get_current_week()
-
-    if season is None or week is None:
-        st.error("Unable to determine current season or week.")
-        return None
-
-    url = f"{BASE_URL}pbp/json/playbyplaydelta/{season}post/{week}/{minutes}"
-    params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
+    url = f"{BASE_URL.lower()}pbp/json/playbyplay/{game_id}"
+    params = {"key": st.secrets["api_keys"]["sportsdataio"]}
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise exception for HTTP errors
+        response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        st.error(f"Failed to fetch play-by-play data: {e}")
+        st.error(f"Failed to fetch play-by-play data for game ID {game_id}: {e}")
         return None
+
+
+def filter_new_plays(play_data, last_sequence):
+    """
+    Filters new plays that have occurred since the last sequence number.
+
+    Parameters:
+        play_data (dict): Complete play-by-play data for the game.
+        last_sequence (int): The last processed play sequence number.
+
+    Returns:
+        list: A list of new plays that occurred after the last sequence.
+    """
+    all_plays = play_data.get("Plays", [])
+    new_plays = [play for play in all_plays if play["Sequence"] > last_sequence]
+    return new_plays
