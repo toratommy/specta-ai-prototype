@@ -48,19 +48,52 @@ def get_players_by_team(team):
         st.error(f"Failed to fetch players for team {team}: {e}")
         return None
 
-def get_play_by_play_delta(season, week, minutes):
+def get_current_season():
     """
-    Fetches live play-by-play data for a given season, week, and time window (minutes)
-    using the SportsDataIO Play-by-Play Delta API.
+    Fetches the current NFL season using the SportsDataIO API.
+    """
+    url = f"{BASE_URL}scores/json/CurrentSeason"
+    params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch the current season: {e}")
+        return None
+
+def get_current_week():
+    """
+    Fetches the current NFL week using the SportsDataIO API.
+    """
+    url = f"{BASE_URL}scores/json/CurrentWeek"
+    params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch the current week: {e}")
+        return None
+
+def get_play_by_play_delta(minutes):
+    """
+    Fetches live play-by-play data using the SportsDataIO Play-by-Play Delta API.
+    Automatically determines the current season and week.
 
     Parameters:
-        season (int): The NFL season year.
-        week (int): The NFL week.
         minutes (int): The time window in minutes to fetch recent play-by-play data.
 
     Returns:
         list: A list of play-by-play data updates.
     """
+    season = get_current_season()
+    week = get_current_week()
+
+    if season is None or week is None:
+        st.error("Unable to determine current season or week.")
+        return None
+
     url = f"{BASE_URL}pbp/json/PlayByPlayDelta/{season}/{week}/{minutes}"
     params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
     try:
