@@ -1,10 +1,10 @@
 import streamlit as st
-import time
 from datetime import datetime
 from utils.auth import authenticate
 from sports_data import get_nfl_schedule, get_game_details, get_players_by_team, get_play_by_play_delta
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
+import time
 
 # Add the logo to the top of the sidebar
 st.sidebar.image("assets/logo.png", use_container_width=True)  # Adjust the path to your logo file
@@ -19,14 +19,16 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "broadcast_running" not in st.session_state:
-    st.session_state.broadcast_running = False
+if "is_broadcasting" not in st.session_state:
+    st.session_state.is_broadcasting = False
+if "broadcast_thread" not in st.session_state:
+    st.session_state.broadcast_thread = None
 
 # Function to handle sign-out
 def sign_out():
     st.session_state.logged_in = False
     st.session_state.username = ""
-    st.session_state.broadcast_running = False
+    st.session_state.is_broadcasting = False
 
 # Login Section
 if not st.session_state.logged_in:
@@ -81,15 +83,16 @@ if st.session_state.logged_in:
             # Ensure a valid game is selected before proceeding
             if selected_score_id != "Select a Game":
                 # Fetch game details
-                with st.spinner("Fetching game details and generating summary..."):
-                    game_data = get_game_details(selected_score_id)
+                game_data = get_game_details(selected_score_id)
 
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
 
                     # Generate and display game summary
-                    basic_details, game_summary = generate_game_summary(game_data, temperature)
+                    with st.spinner("Fetching game details and generating summary..."):
+                        basic_details, game_summary = generate_game_summary(game_data, temperature)
+
                     st.write("### Game Summary")
                     st.markdown(basic_details, unsafe_allow_html=True)
                     st.write(game_summary)
@@ -98,29 +101,40 @@ if st.session_state.logged_in:
                     # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
 
-                    # Play-by-Play Broadcast Button
-                    if not st.session_state.broadcast_running:
-                        if st.button("Start Play-by-Play Broadcast"):
-                            if not game_data["Score"]["IsInProgress"]:
-                                st.error("The game is not currently in progress. Broadcast unavailable.")
-                            else:
-                                st.session_state.broadcast_running = True
-                    else:
-                        if st.button("Stop Play-by-Play Broadcast"):
-                            st.session_state.broadcast_running = False
+                    # Player selection fragment
+                    all_players = [
+                        f"{player['Name']} ({player['Position']}, {player['Team']})"
+                        for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                    ]
+                    selected_players = st.multiselect("Select Players of Interest", all_players)
 
-                    # Play-by-Play Broadcast Section
-                    if st.session_state.broadcast_running:
-                        broadcast_placeholder = st.empty()
-                        season = datetime.strptime(game_data["Date"], "%Y-%m-%dT%H:%M:%S").year
-                        week = game_data["Score"]["Week"]
+                    # Tone/Storyline input
+                    user_prompt = st.text_area(
+                        "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored (e.g., tone, storyline)."
+                    )
 
-                        while st.session_state.broadcast_running:
-                            play_by_play_data = get_play_by_play_delta(season, week, 1)  # Fetch last 1 minute data
-                            if play_by_play_data:
-                                broadcast = generate_broadcast(play_by_play_data, temperature)
-                                broadcast_placeholder.markdown(f"### Live Broadcast Updates\n{broadcast}")
-                            time.sleep(60)  # Wait 1 minute for the next update
+                    if st.button("Start Play-by-Play Broadcast"):
+                        if not game_data["Score"]["IsInProgress"]:
+                            st.error("The game is not in progress. Play-by-play broadcasts can only be started for live games.")
+                        else:
+                            st.session_state.is_broadcasting = True
+                            st.empty()  # Clear any previous messages or outputs
+
+                            while st.session_state.is_broadcasting:
+                                play_data = get_play_by_play_delta(1)  # Fetch plays from the last 1 minute
+                                if play_data:
+                                    relevant_plays = [
+                                        play for play in play_data if play.get("GameID") == selected_score_id
+                                    ]
+                                    if relevant_plays:
+                                        for play in relevant_plays:
+                                            play_summary = generate_broadcast(play["Description"], user_prompt, temperature)
+                                            st.write(play_summary)
+                                time.sleep(60)  # Wait 1 minute before fetching again
+
+                    if st.button("Stop Play-by-Play Broadcast"):
+                        st.session_state.is_broadcasting = False
+                        st.success("Broadcast stopped.")
                 else:
                     st.error("Failed to fetch game details.")
             else:
