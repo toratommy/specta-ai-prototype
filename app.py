@@ -150,7 +150,6 @@ if st.session_state.logged_in:
                                     for play in new_plays:
                                         game_info = prepare_game_info(game_keys[selected_score_id], game_data)
                                         preferences = prepare_user_preferences(
-                                            game_keys[selected_score_id],
                                             selected_players,
                                             user_prompt,
                                         )
