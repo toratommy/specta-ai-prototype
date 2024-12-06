@@ -105,6 +105,18 @@ if st.session_state.logged_in:
                     # Broadcast Customization Section
                     st.write("### Customized Play-by-Play Broadcast")
 
+                    # Player selection
+                    all_players = [
+                        f"{player['Name']} ({player['Position']}, {player['Team']})"
+                        for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                    ]
+                    selected_players = st.multiselect("Select Players of Interest", all_players)
+
+                    # Tone/Storyline input
+                    user_prompt = st.text_area(
+                        "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored (e.g., tone, storyline)."
+                    )
+
                     if game_data["Score"]["IsInProgress"]:
                         if st.button("Start Play-by-Play Broadcast"):
                             st.session_state.broadcasting = True
@@ -123,28 +135,32 @@ if st.session_state.logged_in:
 
                                 # Filter new plays
                                 new_plays = filter_new_plays(play_data, st.session_state.last_sequence)
+
                                 if new_plays:
                                     # Update the last sequence number
                                     st.session_state.last_sequence = max(
                                         play["Sequence"] for play in new_plays
                                     )
 
-                                    # Generate and display the broadcast for the new plays
-                                    for play in new_plays:
-                                        play_description = play["Description"]
-                                        st.write(f"**Play Description:** {play_description}")
+                                    # For the initial broadcast, consider only the last play
+                                    if st.session_state.last_sequence == 0:
+                                        new_plays = [new_plays[-1]]
 
-                                    # Send the filtered plays to the LLM
-                                    broadcast_content = generate_broadcast(
-                                        game_info=prepare_game_info(game_keys[selected_score_id], game_data),
-                                        preferences=prepare_user_preferences(
+                                    # Send the filtered plays to the LLM for insights
+                                    for play in new_plays:
+                                        game_info = prepare_game_info(game_keys[selected_score_id], game_data)
+                                        preferences = prepare_user_preferences(
                                             game_keys[selected_score_id],
-                                            [],
-                                            ""  # Placeholder for any user-defined preferences
-                                        ),
-                                    )
-                                    st.write("### Live Broadcast Update")
-                                    st.write(broadcast_content)
+                                            selected_players,
+                                            user_prompt,
+                                        )
+                                        broadcast_content = generate_broadcast(
+                                            game_info=game_info,
+                                            preferences=preferences,
+                                            temperature=temperature,
+                                        )
+                                        st.write("### Live Broadcast Update")
+                                        st.write(broadcast_content)
                                 else:
                                     st.info("No new plays to process.")
 
