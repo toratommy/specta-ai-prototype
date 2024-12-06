@@ -10,7 +10,7 @@ from sports_data import (
     filter_new_plays,
 )
 from llm_interface import generate_game_summary, generate_broadcast
-from utils.prompt_helpers import prepare_user_preferences, prepare_game_info
+from utils.prompt_helpers import prepare_user_preferences
 
 # Add the logo to the top of the sidebar
 st.sidebar.image("assets/logo.png", use_container_width=True)  # Adjust the path to your logo file
@@ -28,7 +28,7 @@ if "username" not in st.session_state:
 if "broadcasting" not in st.session_state:
     st.session_state.broadcasting = False
 if "last_sequence" not in st.session_state:
-    st.session_state.last_sequence = 0
+    st.session_state.last_sequence = None
 
 # Function to handle sign-out
 def sign_out():
@@ -120,14 +120,35 @@ if st.session_state.logged_in:
                     if game_data["Score"]["IsInProgress"]:
                         if st.button("Start Play-by-Play Broadcast"):
                             st.session_state.broadcasting = True
-                            st.session_state.last_sequence = 0  # Reset last sequence
+
+                            # Fetch initial play-by-play data
+                            play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+                            if play_data and play_data["Plays"]:
+                                # Set the last sequence to the most recent play
+                                st.session_state.last_sequence = max(
+                                    play["Sequence"] for play in play_data["Plays"]
+                                )
+
+                                # Generate insight for the most recent play only
+                                latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
+                                preferences = prepare_user_preferences(
+                                    selected_players,
+                                    user_prompt,
+                                )
+                                broadcast_content = generate_broadcast(
+                                    game_info=latest_play,
+                                    preferences=preferences,
+                                    temperature=temperature,
+                                )
+                                st.write("### Live Broadcast Update")
+                                st.write(broadcast_content)
 
                         if st.session_state.get("broadcasting", False):
                             st.info("Broadcast is running... Click 'Stop Broadcast' to end.")
 
                             stop_broadcast = st.button("Stop Broadcast")
                             while st.session_state.broadcasting and not stop_broadcast:
-                                # Fetch all play-by-play data for the game
+                                # Fetch updated play-by-play data
                                 play_data = get_play_by_play(game_data["Score"]["ScoreID"])
                                 if not play_data:
                                     st.error("Failed to fetch play-by-play data. Ending broadcast.")
@@ -142,13 +163,8 @@ if st.session_state.logged_in:
                                         play["Sequence"] for play in new_plays
                                     )
 
-                                    # For the initial broadcast, consider only the last play
-                                    if st.session_state.last_sequence == 0:
-                                        new_plays = [new_plays[-1]]
-
-                                    # Send the filtered plays to the LLM for insights
+                                    # Generate insights for all new plays
                                     for play in new_plays:
-                                        # game_info = prepare_game_info(game_keys[selected_score_id], game_data)
                                         preferences = prepare_user_preferences(
                                             selected_players,
                                             user_prompt,
