@@ -148,13 +148,13 @@ if st.session_state.logged_in:
 
                                     # Send the filtered plays to the LLM for insights
                                     for play in new_plays:
-                                        game_info = prepare_game_info(game_keys[selected_score_id], game_data)
+                                        # game_info = prepare_game_info(game_keys[selected_score_id], game_data)
                                         preferences = prepare_user_preferences(
                                             selected_players,
                                             user_prompt,
                                         )
                                         broadcast_content = generate_broadcast(
-                                            game_info=game_info,
+                                            game_info=play,
                                             preferences=preferences,
                                             temperature=temperature,
                                         )
