@@ -52,7 +52,7 @@ def get_current_season():
     """
     Fetches the current NFL season using the SportsDataIO API.
     """
-    url = f"{BASE_URL}scores/json/CurrentSeason"
+    url = f"{BASE_URL}scores/json/currentseason"
     params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
@@ -66,7 +66,7 @@ def get_current_week():
     """
     Fetches the current NFL week using the SportsDataIO API.
     """
-    url = f"{BASE_URL}scores/json/CurrentWeek"
+    url = f"{BASE_URL}scores/json/currentweek"
     params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
@@ -94,7 +94,7 @@ def get_play_by_play_delta(minutes):
         st.error("Unable to determine current season or week.")
         return None
 
-    url = f"{BASE_URL}pbp/json/PlayByPlayDelta/{season}/{week}/{minutes}"
+    url = f"{BASE_URL}pbp/json/playbyplaydelta/{season}/{week}/{minutes}"
     params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
