@@ -174,10 +174,9 @@ if st.session_state.logged_in:
                                             preferences=preferences,
                                             temperature=temperature,
                                         )
-                                        st.write("### Live Broadcast Update")
-                                        st.write(broadcast_content)
-                                else:
-                                    st.info("No new plays to process.")
+                                        with st.chat_message("assistant"):
+                                            st.write("### Live Broadcast Update")
+                                            st.write(broadcast_content)
 
                                 # Wait for 1 minute before the next API call
                                 time.sleep(60)
