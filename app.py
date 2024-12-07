@@ -140,12 +140,12 @@ if st.session_state.logged_in:
                                     preferences=preferences,
                                     temperature=temperature,
                                 )
-                                st.write("### Live Broadcast Update")
-                                st.write(broadcast_content)
+                                st.info("Broadcast is running... Click 'Stop Broadcast' to end.")
+                                with st.chat_message("assistant"):
+                                    st.write("### Live Broadcast Update")
+                                    st.write(broadcast_content)
 
                         if st.session_state.get("broadcasting", False):
-                            st.info("Broadcast is running... Click 'Stop Broadcast' to end.")
-
                             stop_broadcast = st.button("Stop Broadcast")
                             while st.session_state.broadcasting and not stop_broadcast:
                                 # Fetch updated play-by-play data
