@@ -13,7 +13,7 @@ from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences
 
 # Add the logo to the top of the sidebar
-st.sidebar.image("assets/logo.png", use_container_width=True)  # Adjust the path to your logo file
+st.sidebar.image("assets/logo.png", use_container_width=True)
 
 # Main App
 st.title("Specta AI")
@@ -29,6 +29,8 @@ if "broadcasting" not in st.session_state:
     st.session_state.broadcasting = False
 if "last_sequence" not in st.session_state:
     st.session_state.last_sequence = None
+if "game_summary" not in st.session_state:
+    st.session_state.game_summary = None
 
 # Function to handle sign-out
 def sign_out():
@@ -49,143 +51,131 @@ if not st.session_state.logged_in:
         else:
             st.sidebar.error("Invalid credentials.")
 else:
-    # Add a sign-out button when the user is logged in
     st.sidebar.header(f"Welcome, {st.session_state.username}")
     if st.sidebar.button("Sign Out"):
         sign_out()
 
 # Main Content After Login
 if st.session_state.logged_in:
-    # Fetch NFL Schedule
     st.sidebar.header("Game Selection")
     st.sidebar.write("Choose a date and game to customize your broadcast:")
     nfl_schedule = get_nfl_schedule()
 
     if nfl_schedule:
-        # Add a date selector
         default_date = datetime(2024, 1, 20)
         selected_date = st.sidebar.date_input("Select Date:", value=default_date)
 
-        # Filter games by the selected date
         games_on_date = [
             game for game in nfl_schedule if datetime.strptime(game["Date"], "%Y-%m-%dT%H:%M:%S").date() == selected_date
         ]
 
         if games_on_date:
-            # Create a dictionary of score IDs and their descriptions
             game_keys = {game["ScoreID"]: f"{game['AwayTeam']} vs {game['HomeTeam']}" for game in games_on_date}
             options = ["Select a Game"] + list(game_keys.keys())
 
             selected_score_id = st.sidebar.selectbox(
                 "Select Game",
                 options=options,
-                format_func=lambda x: game_keys.get(x, x),  # Display the game name or placeholder
+                format_func=lambda x: game_keys.get(x, x),
             )
 
-            # User input for temperature
             temperature = st.sidebar.slider("Set the creativity level (temperature):", 0.0, 1.0, 0.7, 0.1)
 
-            # Ensure a valid game is selected before proceeding
             if selected_score_id != "Select a Game":
-                # Fetch game details
                 game_data = get_game_details(selected_score_id)
 
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
 
-                    # Generate and display game summary
-                    with st.spinner("Fetching game details and generating summary..."):
-                        basic_details, game_summary = generate_game_summary(game_data, temperature)
-                    st.write("### Game Summary")
-                    st.markdown(basic_details, unsafe_allow_html=True)
-                    st.write(game_summary)
-                    st.divider()
+                    # Tabs for different features
+                    tab1, tab2 = st.tabs(["Game Summary", "Play-by-Play Broadcast"])
 
-                    # Broadcast Customization Section
-                    st.write("### Customized Play-by-Play Broadcast")
+                    # Tab 1: Game Summary
+                    with tab1:
+                        st.write("### Game Summary")
 
-                    # Player selection
-                    all_players = [
-                        f"{player['Name']} ({player['Position']}, {player['Team']})"
-                        for player in get_players_by_team(home_team) + get_players_by_team(away_team)
-                    ]
-                    selected_players = st.multiselect("Select Players of Interest", all_players)
+                        if st.button("Refresh Game Summary"):
+                            with st.spinner("Fetching game details and generating summary..."):
+                                basic_details, game_summary = generate_game_summary(game_data, temperature)
+                                st.session_state.game_summary = (basic_details, game_summary)
 
-                    # Tone/Storyline input
-                    user_prompt = st.text_area(
-                        "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored (e.g., tone, storyline)."
-                    )
+                        if st.session_state.game_summary:
+                            basic_details, game_summary = st.session_state.game_summary
+                            st.markdown(basic_details, unsafe_allow_html=True)
+                            st.write(game_summary)
+                        else:
+                            st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
 
-                    if game_data["Score"]["IsInProgress"]:
-                        if st.button("Start Play-by-Play Broadcast"):
-                            st.session_state.broadcasting = True
+                    # Tab 2: Play-by-Play Broadcast
+                    with tab2:
+                        st.write("### Customized Play-by-Play Broadcast")
 
-                            # Fetch initial play-by-play data
-                            play_data = get_play_by_play(game_data["Score"]["ScoreID"])
-                            if play_data and play_data["Plays"]:
-                                # Set the last sequence to the most recent play
-                                st.session_state.last_sequence = max(
-                                    play["Sequence"] for play in play_data["Plays"]
-                                )
+                        all_players = [
+                            f"{player['Name']} ({player['Position']}, {player['Team']})"
+                            for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                        ]
+                        selected_players = st.multiselect("Select Players of Interest", all_players)
 
-                                # Generate insight for the most recent play only
-                                latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
-                                preferences = prepare_user_preferences(
-                                    selected_players,
-                                    user_prompt,
-                                )
-                                broadcast_content = generate_broadcast(
-                                    game_info=latest_play,
-                                    preferences=preferences,
-                                    temperature=temperature,
-                                )
-                                st.info("Broadcast is running... Click 'Stop Broadcast' to end.")
-                                with st.chat_message("assistant"):
+                        user_prompt = st.text_area(
+                            "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
+                            "(e.g., tone, storyline)."
+                        )
+
+                        if game_data["Score"]["IsInProgress"]:
+                            if st.button("Start Play-by-Play Broadcast"):
+                                st.session_state.broadcasting = True
+                                play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+
+                                if play_data and play_data["Plays"]:
+                                    st.session_state.last_sequence = max(
+                                        play["Sequence"] for play in play_data["Plays"]
+                                    )
+
+                                    latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
+                                    preferences = prepare_user_preferences(selected_players, user_prompt)
+                                    broadcast_content = generate_broadcast(
+                                        game_info=latest_play,
+                                        preferences=preferences,
+                                        temperature=temperature,
+                                    )
+                                    st.info("Broadcast is running... Click 'Stop Broadcast' to end.")
                                     st.write("### Live Broadcast Update")
                                     st.write(broadcast_content)
 
-                        if st.session_state.get("broadcasting", False):
-                            stop_broadcast = st.button("Stop Broadcast")
-                            while st.session_state.broadcasting and not stop_broadcast:
-                                # Fetch updated play-by-play data
-                                play_data = get_play_by_play(game_data["Score"]["ScoreID"])
-                                if not play_data:
-                                    st.error("Failed to fetch play-by-play data. Ending broadcast.")
-                                    break
+                            if st.session_state.get("broadcasting", False):
+                                stop_broadcast = st.button("Stop Broadcast")
+                                while st.session_state.broadcasting and not stop_broadcast:
+                                    play_data = get_play_by_play(game_data["Score"]["ScoreID"])
 
-                                # Filter new plays
-                                new_plays = filter_new_plays(play_data, st.session_state.last_sequence)
+                                    if not play_data:
+                                        st.error("Failed to fetch play-by-play data. Ending broadcast.")
+                                        break
 
-                                if new_plays:
-                                    # Update the last sequence number
-                                    st.session_state.last_sequence = max(
-                                        play["Sequence"] for play in new_plays
-                                    )
+                                    new_plays = filter_new_plays(play_data, st.session_state.last_sequence)
 
-                                    # Generate insights for all new plays
-                                    for play in new_plays:
-                                        preferences = prepare_user_preferences(
-                                            selected_players,
-                                            user_prompt,
+                                    if new_plays:
+                                        st.session_state.last_sequence = max(
+                                            play["Sequence"] for play in new_plays
                                         )
-                                        broadcast_content = generate_broadcast(
-                                            game_info=play,
-                                            preferences=preferences,
-                                            temperature=temperature,
-                                        )
-                                        with st.chat_message("assistant"):
+
+                                        for play in new_plays:
+                                            preferences = prepare_user_preferences(selected_players, user_prompt)
+                                            broadcast_content = generate_broadcast(
+                                                game_info=play,
+                                                preferences=preferences,
+                                                temperature=temperature,
+                                            )
                                             st.write("### Live Broadcast Update")
                                             st.write(broadcast_content)
 
-                                # Wait for 1 minute before the next API call
-                                time.sleep(60)
+                                    time.sleep(60)
 
-                            if stop_broadcast:
-                                st.session_state.broadcasting = False
-                                st.success("Broadcast stopped.")
-                    else:
-                        st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
+                                if stop_broadcast:
+                                    st.session_state.broadcasting = False
+                                    st.success("Broadcast stopped.")
+                        else:
+                            st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
                 else:
                     st.error("Failed to fetch game details.")
             else:
