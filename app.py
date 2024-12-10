@@ -115,11 +115,6 @@ if st.session_state.logged_in:
                     with tab2:
                         st.write("### Customized Play-by-Play Broadcast")
 
-                        temperature_broadcast = st.slider(
-                            "Set the creativity level (temperature):",
-                            0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
-                        )
-
                         all_players = [
                             f"{player['Name']} ({player['Position']}, {player['Team']})"
                             for player in get_players_by_team(home_team) + get_players_by_team(away_team)
@@ -129,6 +124,11 @@ if st.session_state.logged_in:
                         user_prompt = st.text_area(
                             "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
                             "(e.g., tone, storyline)."
+                        )
+
+                        temperature_broadcast = st.slider(
+                            "Set the creativity level (temperature):",
+                            0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
                         )
 
                         # Scrollable container for broadcasts
