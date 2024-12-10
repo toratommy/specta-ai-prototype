@@ -97,7 +97,7 @@ if st.session_state.logged_in:
                             0.0, 1.0, 0.7, 0.1, key="temperature_summary"
                         )
 
-                        if st.button("Refresh Game Summary"):
+                        if st.button("Refresh Game Summary", key="refresh_summary"):
                             with st.spinner("Generating game summary..."):
                                 basic_details, game_summary = generate_game_summary(
                                     game_data, temperature_summary
@@ -132,7 +132,7 @@ if st.session_state.logged_in:
                         )
 
                         if game_data["Score"]["IsInProgress"]:
-                            if st.button("Start Play-by-Play Broadcast"):
+                            if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
                                 st.session_state.broadcasting = True
                                 play_data = get_play_by_play(game_data["Score"]["ScoreID"])
 
@@ -154,8 +154,15 @@ if st.session_state.logged_in:
                                     st.write("### Live Broadcast Update")
                                     st.write(broadcast_content)
 
-                            if st.session_state.get("broadcasting", False):
+                            if st.session_state.broadcasting:
+                                stop_button_clicked = st.button("Stop Broadcast", key="stop_broadcast")
+
                                 while st.session_state.broadcasting:
+                                    if stop_button_clicked:
+                                        st.session_state.broadcasting = False
+                                        st.success("Broadcast stopped.")
+                                        break
+
                                     with st.spinner("Next play loading..."):
                                         play_data = get_play_by_play(game_data["Score"]["ScoreID"])
 
@@ -185,9 +192,7 @@ if st.session_state.logged_in:
                                                 st.write("### Live Broadcast Update")
                                                 st.write(broadcast_content)
 
-                                    if st.button("Stop Broadcast", key="stop_broadcast"):
-                                        st.session_state.broadcasting = False
-                                        st.success("Broadcast stopped.")
+                                    time.sleep(60)
                         else:
                             st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
                 else:
