@@ -79,8 +79,6 @@ if st.session_state.logged_in:
                 format_func=lambda x: game_keys.get(x, x),
             )
 
-            temperature = st.sidebar.slider("Set the creativity level (temperature):", 0.0, 1.0, 0.7, 0.1)
-
             if selected_score_id != "Select a Game":
                 game_data = get_game_details(selected_score_id)
 
@@ -94,10 +92,16 @@ if st.session_state.logged_in:
                     # Tab 1: Game Summary
                     with tab1:
                         st.write("### Game Summary")
+                        temperature_summary = st.slider(
+                            "Set the creativity level (temperature):",
+                            0.0, 1.0, 0.7, 0.1, key="temperature_summary"
+                        )
 
                         if st.button("Refresh Game Summary"):
-                            with st.spinner("Fetching game details and generating summary..."):
-                                basic_details, game_summary = generate_game_summary(game_data, temperature)
+                            with st.spinner("Generating game summary..."):
+                                basic_details, game_summary = generate_game_summary(
+                                    game_data, temperature_summary
+                                )
                                 st.session_state.game_summary = (basic_details, game_summary)
 
                         if st.session_state.game_summary:
@@ -110,6 +114,11 @@ if st.session_state.logged_in:
                     # Tab 2: Play-by-Play Broadcast
                     with tab2:
                         st.write("### Customized Play-by-Play Broadcast")
+
+                        temperature_broadcast = st.slider(
+                            "Set the creativity level (temperature):",
+                            0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
+                        )
 
                         all_players = [
                             f"{player['Name']} ({player['Position']}, {player['Team']})"
@@ -133,47 +142,52 @@ if st.session_state.logged_in:
                                     )
 
                                     latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
-                                    preferences = prepare_user_preferences(selected_players, user_prompt)
+                                    preferences = prepare_user_preferences(
+                                        selected_players, user_prompt
+                                    )
                                     broadcast_content = generate_broadcast(
                                         game_info=latest_play,
                                         preferences=preferences,
-                                        temperature=temperature,
+                                        temperature=temperature_broadcast,
                                     )
-                                    st.info("Broadcast is running... Click 'Stop Broadcast' to end.")
+                                    st.info("Broadcast is running... Scroll down to stop.")
                                     st.write("### Live Broadcast Update")
                                     st.write(broadcast_content)
 
                             if st.session_state.get("broadcasting", False):
-                                stop_broadcast = st.button("Stop Broadcast")
-                                while st.session_state.broadcasting and not stop_broadcast:
-                                    play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+                                while st.session_state.broadcasting:
+                                    with st.spinner("Next play loading..."):
+                                        play_data = get_play_by_play(game_data["Score"]["ScoreID"])
 
-                                    if not play_data:
-                                        st.error("Failed to fetch play-by-play data. Ending broadcast.")
-                                        break
+                                        if not play_data:
+                                            st.error("Failed to fetch play-by-play data. Ending broadcast.")
+                                            st.session_state.broadcasting = False
+                                            break
 
-                                    new_plays = filter_new_plays(play_data, st.session_state.last_sequence)
-
-                                    if new_plays:
-                                        st.session_state.last_sequence = max(
-                                            play["Sequence"] for play in new_plays
+                                        new_plays = filter_new_plays(
+                                            play_data, st.session_state.last_sequence
                                         )
 
-                                        for play in new_plays:
-                                            preferences = prepare_user_preferences(selected_players, user_prompt)
-                                            broadcast_content = generate_broadcast(
-                                                game_info=play,
-                                                preferences=preferences,
-                                                temperature=temperature,
+                                        if new_plays:
+                                            st.session_state.last_sequence = max(
+                                                play["Sequence"] for play in new_plays
                                             )
-                                            st.write("### Live Broadcast Update")
-                                            st.write(broadcast_content)
 
-                                    time.sleep(60)
+                                            for play in new_plays:
+                                                preferences = prepare_user_preferences(
+                                                    selected_players, user_prompt
+                                                )
+                                                broadcast_content = generate_broadcast(
+                                                    game_info=play,
+                                                    preferences=preferences,
+                                                    temperature=temperature_broadcast,
+                                                )
+                                                st.write("### Live Broadcast Update")
+                                                st.write(broadcast_content)
 
-                                if stop_broadcast:
-                                    st.session_state.broadcasting = False
-                                    st.success("Broadcast stopped.")
+                                    if st.button("Stop Broadcast", key="stop_broadcast"):
+                                        st.session_state.broadcasting = False
+                                        st.success("Broadcast stopped.")
                         else:
                             st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
                 else:
