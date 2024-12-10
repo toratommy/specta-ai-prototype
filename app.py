@@ -132,7 +132,7 @@ if st.session_state.logged_in:
                         )
 
                         # Scrollable container for broadcasts
-                        broadcast_container = st.container()
+                        broadcast_container = st.container(boarder='True', height=500)
 
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
@@ -156,12 +156,7 @@ if st.session_state.logged_in:
                                             temperature=temperature_broadcast,
                                         )
                                         with broadcast_container:
-                                            st.markdown(
-                                                "<div style='max-height: 500px; overflow-y: auto;'>",
-                                                unsafe_allow_html=True
-                                            )
                                             st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
-                                            st.markdown("</div>", unsafe_allow_html=True)
 
                             while st.session_state.broadcasting:
                                 play_data = get_play_by_play(game_data["Score"]["ScoreID"])
@@ -192,12 +187,7 @@ if st.session_state.logged_in:
                                                 temperature=temperature_broadcast,
                                             )
                                             with broadcast_container:
-                                                st.markdown(
-                                                    "<div style='max-height: 500px; overflow-y: auto;'>",
-                                                    unsafe_allow_html=True
-                                                )
                                                 st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
-                                                st.markdown("</div>", unsafe_allow_html=True)
 
                                     with st.spinner("Waiting for next play..."):
                                         time.sleep(30)
