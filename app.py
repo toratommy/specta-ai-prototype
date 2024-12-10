@@ -132,7 +132,7 @@ if st.session_state.logged_in:
                         )
 
                         # Scrollable container for broadcasts
-                        broadcast_container = st.container(border='True', height=500)
+                        broadcast_container = st.container(border=True, height=500)
 
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
