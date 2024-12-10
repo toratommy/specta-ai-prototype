@@ -151,9 +151,9 @@ if st.session_state.logged_in:
                                             preferences=preferences,
                                             temperature=temperature_broadcast,
                                         )
-
-                                        st.write("### Live Broadcast Update")
-                                        st.write(broadcast_content)
+                                        with st.chat_message("ai"):
+                                            st.write("### Live Broadcast Update")
+                                            st.write(broadcast_content)
 
                             while st.session_state.broadcasting:
                                 with st.spinner("Next play loading..."):
@@ -182,8 +182,9 @@ if st.session_state.logged_in:
                                                 preferences=preferences,
                                                 temperature=temperature_broadcast,
                                             )
-                                            st.write("### Live Broadcast Update")
-                                            st.write(broadcast_content)
+                                            with st.chat_message("ai"):
+                                                st.write("### Live Broadcast Update")
+                                                st.write(broadcast_content)
 
                                     time.sleep(60)
                         else:
