@@ -151,12 +151,12 @@ if st.session_state.logged_in:
                                             preferences=preferences,
                                             temperature=temperature_broadcast,
                                         )
-                                        with st.chat_message("ai"):
-                                            st.write("### Live Broadcast Update")
-                                            st.write(broadcast_content)
+                                    with st.chat_message("ai"):
+                                                st.write("### Live Broadcast Update")
+                                                st.write(broadcast_content)
 
                             while st.session_state.broadcasting:
-                                with st.spinner("Next play loading..."):
+                                with st.spinner("Fetching play-by-play data..."):
                                     play_data = get_play_by_play(game_data["Score"]["ScoreID"])
 
                                     if not play_data:
@@ -168,12 +168,13 @@ if st.session_state.logged_in:
                                         play_data, st.session_state.last_sequence
                                     )
 
-                                    if new_plays:
-                                        st.session_state.last_sequence = max(
-                                            play["Sequence"] for play in new_plays
-                                        )
+                                if new_plays:
+                                    st.session_state.last_sequence = max(
+                                        play["Sequence"] for play in new_plays
+                                    )
 
-                                        for play in new_plays:
+                                    for play in new_plays:
+                                        with st.spinner("Generating broadcast update..."):
                                             preferences = prepare_user_preferences(
                                                 selected_players, user_prompt
                                             )
@@ -186,7 +187,8 @@ if st.session_state.logged_in:
                                                 st.write("### Live Broadcast Update")
                                                 st.write(broadcast_content)
 
-                                    time.sleep(60)
+                                    with st.spinner("Waiting for next play..."):
+                                        time.sleep(30)
                         else:
                             st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
                 else:
