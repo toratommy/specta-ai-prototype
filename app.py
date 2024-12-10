@@ -131,6 +131,9 @@ if st.session_state.logged_in:
                             "(e.g., tone, storyline)."
                         )
 
+                        # Scrollable container for broadcasts
+                        broadcast_container = st.container()
+
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
                                 st.session_state.broadcasting = True
@@ -141,7 +144,8 @@ if st.session_state.logged_in:
                                         play["Sequence"] for play in play_data["Plays"]
                                     )
                                     st.info("Broadcast is running...")
-                                    with st.spinner("Generating play-by-play broadcast"):
+
+                                    with st.spinner("Generating initial play-by-play broadcast..."):
                                         latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
                                         preferences = prepare_user_preferences(
                                             selected_players, user_prompt
@@ -151,9 +155,13 @@ if st.session_state.logged_in:
                                             preferences=preferences,
                                             temperature=temperature_broadcast,
                                         )
-                                    with st.chat_message("ai"):
-                                                st.write("### Live Broadcast Update")
-                                                st.write(broadcast_content)
+                                        with broadcast_container:
+                                            st.markdown(
+                                                "<div style='max-height: 500px; overflow-y: auto;'>",
+                                                unsafe_allow_html=True
+                                            )
+                                            st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
+                                            st.markdown("</div>", unsafe_allow_html=True)
 
                             while st.session_state.broadcasting:
                                 play_data = get_play_by_play(game_data["Score"]["ScoreID"])
@@ -162,7 +170,7 @@ if st.session_state.logged_in:
                                     st.error("Failed to fetch play-by-play data. Ending broadcast.")
                                     st.session_state.broadcasting = False
                                     break
-                                
+
                                 with st.spinner("Fetching play-by-play data..."):
                                     new_plays = filter_new_plays(
                                         play_data, st.session_state.last_sequence
@@ -183,9 +191,13 @@ if st.session_state.logged_in:
                                                 preferences=preferences,
                                                 temperature=temperature_broadcast,
                                             )
-                                            with st.chat_message("ai"):
-                                                st.write("### Live Broadcast Update")
-                                                st.write(broadcast_content)
+                                            with broadcast_container:
+                                                st.markdown(
+                                                    "<div style='max-height: 500px; overflow-y: auto;'>",
+                                                    unsafe_allow_html=True
+                                                )
+                                                st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
+                                                st.markdown("</div>", unsafe_allow_html=True)
 
                                     with st.spinner("Waiting for next play..."):
                                         time.sleep(30)
