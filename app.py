@@ -140,57 +140,50 @@ if st.session_state.logged_in:
                                     st.session_state.last_sequence = max(
                                         play["Sequence"] for play in play_data["Plays"]
                                     )
-
-                                    latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
-                                    preferences = prepare_user_preferences(
-                                        selected_players, user_prompt
-                                    )
-                                    broadcast_content = generate_broadcast(
-                                        game_info=latest_play,
-                                        preferences=preferences,
-                                        temperature=temperature_broadcast,
-                                    )
-                                    st.info("Broadcast is running... Scroll down to stop.")
-                                    st.write("### Live Broadcast Update")
-                                    st.write(broadcast_content)
-
-                            if st.session_state.broadcasting:
-                                stop_button_clicked = st.button("Stop Broadcast", key="stop_broadcast")
-
-                                while st.session_state.broadcasting:
-                                    if stop_button_clicked:
-                                        st.session_state.broadcasting = False
-                                        st.success("Broadcast stopped.")
-                                        break
-
-                                    with st.spinner("Next play loading..."):
-                                        play_data = get_play_by_play(game_data["Score"]["ScoreID"])
-
-                                        if not play_data:
-                                            st.error("Failed to fetch play-by-play data. Ending broadcast.")
-                                            st.session_state.broadcasting = False
-                                            break
-
-                                        new_plays = filter_new_plays(
-                                            play_data, st.session_state.last_sequence
+                                    st.info("Broadcast is running...")
+                                    with st.spinner("Generating play-by-play broadcast"):
+                                        latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
+                                        preferences = prepare_user_preferences(
+                                            selected_players, user_prompt
+                                        )
+                                        broadcast_content = generate_broadcast(
+                                            game_info=latest_play,
+                                            preferences=preferences,
+                                            temperature=temperature_broadcast,
                                         )
 
-                                        if new_plays:
-                                            st.session_state.last_sequence = max(
-                                                play["Sequence"] for play in new_plays
-                                            )
+                                        st.write("### Live Broadcast Update")
+                                        st.write(broadcast_content)
 
-                                            for play in new_plays:
-                                                preferences = prepare_user_preferences(
-                                                    selected_players, user_prompt
-                                                )
-                                                broadcast_content = generate_broadcast(
-                                                    game_info=play,
-                                                    preferences=preferences,
-                                                    temperature=temperature_broadcast,
-                                                )
-                                                st.write("### Live Broadcast Update")
-                                                st.write(broadcast_content)
+                            while st.session_state.broadcasting:
+                                with st.spinner("Next play loading..."):
+                                    play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+
+                                    if not play_data:
+                                        st.error("Failed to fetch play-by-play data. Ending broadcast.")
+                                        st.session_state.broadcasting = False
+                                        break
+
+                                    new_plays = filter_new_plays(
+                                        play_data, st.session_state.last_sequence
+                                    )
+
+                                    if new_plays:
+                                        st.session_state.last_sequence = max(
+                                            play["Sequence"] for play in new_plays
+                                        )
+
+                                        for play in new_plays:
+                                            preferences = prepare_user_preferences(
+                                                selected_players, user_prompt
+                                            )
+                                            broadcast_content = generate_broadcast(
+                                                game_info=play,
+                                                preferences=preferences,
+                                                temperature=temperature_broadcast,
+                                            )
+                                            st.write("### Live Broadcast Update")
+                                            st.write(broadcast_content)
 
                                     time.sleep(60)
                         else:
