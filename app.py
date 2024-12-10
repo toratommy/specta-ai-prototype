@@ -132,7 +132,7 @@ if st.session_state.logged_in:
                         )
 
                         # Scrollable container for broadcasts
-                        broadcast_container = st.container(border = True, height = 400)
+                        broadcast_container = st.container(border = True, height = 450)
 
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
@@ -146,7 +146,7 @@ if st.session_state.logged_in:
                                         )
                                         st.info("Broadcast is running...")
 
-                                        with st.spinner("Generating initial play-by-play broadcast..."):
+                                        with st.spinner("Generating play-by-play broadcast..."):
                                             latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
                                             preferences = prepare_user_preferences(
                                                 selected_players, user_prompt
