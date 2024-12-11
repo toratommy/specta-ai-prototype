@@ -46,5 +46,68 @@ def get_players_by_team(team):
         return response.json()
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to fetch players for team {team}: {e}")
-        st.write("Response details:", response.text if response else "No response")
         return None
+
+def get_current_season():
+    """
+    Fetches the current NFL season using the SportsDataIO API.
+    """
+    url = f"{BASE_URL}scores/json/currentseason"
+    params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch the current season: {e}")
+        return None
+
+def get_current_week():
+    """
+    Fetches the current NFL week using the SportsDataIO API.
+    """
+    url = f"{BASE_URL}scores/json/currentweek"
+    params = {"key": st.secrets["api_keys"]["sportsdataio"]}  # API key as query parameter
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch the current week: {e}")
+        return None
+
+def get_play_by_play(game_id):
+    """
+    Fetches all plays for a specific game from the SportsDataIO Replay API.
+
+    Parameters:
+        game_id (int): Global Game ID.
+
+    Returns:
+        dict: Play-by-play data for the game.
+    """
+    url = f"{BASE_URL.lower()}pbp/json/playbyplay/{game_id}"
+    params = {"key": st.secrets["api_keys"]["sportsdataio"]}
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch play-by-play data for game ID {game_id}: {e}")
+        return None
+
+
+def filter_new_plays(play_data, last_sequence):
+    """
+    Filters new plays that have occurred since the last sequence number.
+
+    Parameters:
+        play_data (dict): Complete play-by-play data for the game.
+        last_sequence (int): The last processed play sequence number.
+
+    Returns:
+        list: A list of new plays that occurred after the last sequence.
+    """
+    all_plays = play_data.get("Plays", [])
+    new_plays = [play for play in all_plays if play["Sequence"] > last_sequence]
+    return new_plays
