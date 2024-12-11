@@ -158,7 +158,7 @@ if st.session_state.logged_in:
                                 with broadcast_container:
                                     with st.spinner("Fetching play-by-play data..."):
                                         play_data = get_play_by_play(game_data["Score"]["ScoreID"])
-
+                                        
                                     if play_data and play_data["Plays"]:
                                         st.session_state.last_sequence = max(
                                             play["Sequence"] for play in play_data["Plays"]
@@ -181,9 +181,9 @@ if st.session_state.logged_in:
                                         st.session_state.broadcasting = False
 
                             while st.session_state.broadcasting:
+                                play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+
                                 with broadcast_container:
-                                    with st.spinner("Fetching play-by-play data..."):
-                                        play_data = get_play_by_play(game_data["Score"]["ScoreID"])
                                     if not play_data:
                                         st.error("Failed to fetch play-by-play data. Ending broadcast.")
                                         st.session_state.broadcasting = False
