@@ -105,7 +105,7 @@ def generate_game_summary(game_data, temperature=0.7):
     # Call the OpenAI API
     try:
         chat_completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant generating sports game summaries."},
                 {"role": "user", "content": prompt}
@@ -139,7 +139,7 @@ def generate_broadcast(game_info, preferences, temperature=0.7):
     # Call the OpenAI API
     try:
         chat_completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant generating sports play-by-play broadcasts."},
                 {"role": "user", "content": prompt}
