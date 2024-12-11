@@ -180,7 +180,8 @@ if st.session_state.logged_in:
                                         st.error("Failed to fetch initial play-by-play data. Ending broadcast.")
                                         st.session_state.broadcasting = False
                             else:
-                                "Make Selections and Select 'Start Play-by-Play Broadcast'."
+                                with broadcast_container:
+                                    st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
 
                             while st.session_state.broadcasting:
                                 play_data = get_play_by_play(game_data["Score"]["ScoreID"])
