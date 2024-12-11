@@ -119,7 +119,18 @@ if st.session_state.logged_in:
                             f"{player['Name']} ({player['Position']}, {player['Team']})"
                             for player in get_players_by_team(home_team) + get_players_by_team(away_team)
                         ]
-                        selected_players = st.multiselect("Select Players of Interest", all_players)
+                        
+                        # Player selection fragment
+                        @st.fragment 
+                        def player_selections():
+                            all_players = [
+                                f"{player['Name']} ({player['Position']}, {player['Team']})"
+                                for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                            ]
+                            selected_players = st.multiselect("Select Players of Interest", all_players)
+                            return selected_players
+
+                        selected_players = player_selections()
 
                         user_prompt = st.text_area(
                             "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
