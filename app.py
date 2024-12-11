@@ -119,7 +119,7 @@ if st.session_state.logged_in:
                             f"{player['Name']} ({player['Position']}, {player['Team']})"
                             for player in get_players_by_team(home_team) + get_players_by_team(away_team)
                         ]
-                        
+
                         # Player selection fragment
                         @st.fragment 
                         def player_selections():
@@ -130,17 +130,28 @@ if st.session_state.logged_in:
                             selected_players = st.multiselect("Select Players of Interest", all_players)
                             return selected_players
 
+                        # User prompt fragment
+                        @st.fragment 
+                        def user_prompt():
+                            user_prompt = st.text_area(
+                                "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
+                                "(e.g., tone, storyline)."
+                            )
+                            return user_prompt
+                        
+                        # Temperature fragment
+                        @st.fragment 
+                        def temperature_broadcast():
+                            temperature_broadcast = st.slider(
+                                "Set the creativity level (temperature):",
+                                0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
+                            )
+                            return temperature_broadcast
+
+                        # Initialize user selection variables
                         selected_players = player_selections()
-
-                        user_prompt = st.text_area(
-                            "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
-                            "(e.g., tone, storyline)."
-                        )
-
-                        temperature_broadcast = st.slider(
-                            "Set the creativity level (temperature):",
-                            0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
-                        )
+                        input_prompt = user_prompt()
+                        broadcast_temp = temperature_broadcast()
 
                         # Scrollable container for broadcasts
                         broadcast_container = st.container(border = True, height = 450)
@@ -160,12 +171,12 @@ if st.session_state.logged_in:
                                         with st.spinner("Generating play-by-play broadcast..."):
                                             latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
                                             preferences = prepare_user_preferences(
-                                                selected_players, user_prompt
+                                                selected_players, input_prompt
                                             )
                                             broadcast_content = generate_broadcast(
                                                 game_info=latest_play,
                                                 preferences=preferences,
-                                                temperature=temperature_broadcast,
+                                                temperature=broadcast_temp,
                                             )
                                             st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
                                     else:
@@ -194,12 +205,12 @@ if st.session_state.logged_in:
                                         for play in new_plays:
                                             with st.spinner("Generating broadcast update..."):
                                                 preferences = prepare_user_preferences(
-                                                    selected_players, user_prompt
+                                                    selected_players, input_prompt
                                                 )
                                                 broadcast_content = generate_broadcast(
                                                     game_info=play,
                                                     preferences=preferences,
-                                                    temperature=temperature_broadcast,
+                                                    temperature=broadcast_temp,
                                                 )
                                                 st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
 
