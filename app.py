@@ -115,7 +115,8 @@ if st.session_state.logged_in:
                     with tab2:
                         st.write("### Customized Play-by-Play Broadcast")
 
-                        @st.fragment
+                        # Player selection fragment
+                        @st.fragment 
                         def player_selections():
                             all_players = [
                                 f"{player['Name']} ({player['Position']}, {player['Team']})"
@@ -124,44 +125,46 @@ if st.session_state.logged_in:
                             selected_players = st.multiselect("Select Players of Interest", all_players)
                             return selected_players
 
-                        @st.fragment
+                        # User prompt fragment
+                        @st.fragment 
                         def user_prompt():
-                            return st.text_area(
-                                "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored (e.g., tone, storyline)."
+                            user_prompt = st.text_area(
+                                "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
+                                "(e.g., tone, storyline)."
                             )
-
-                        @st.fragment
+                            return user_prompt
+                        
+                        # Temperature fragment
+                        @st.fragment 
                         def temperature_broadcast():
-                            return st.slider(
+                            temperature_broadcast = st.slider(
                                 "Set the creativity level (temperature):",
                                 0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
                             )
+                            return temperature_broadcast
 
+                        # Initialize user selection variables
                         selected_players = player_selections()
                         input_prompt = user_prompt()
                         broadcast_temp = temperature_broadcast()
 
                         # Scrollable container for broadcasts
-                        broadcast_container = st.container(border=True, height=450)
-
-                        with broadcast_container:
-                            if not st.session_state.broadcasting:
-                                st.warning("Make your selections and press 'Start Broadcast'.")
+                        broadcast_container = st.container(border = True, height = 450)
 
                         if game_data["Score"]["IsInProgress"]:
-                            col1, col2 = st.columns([1, 1])
-
-                            with col1:
-                                if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
-                                    st.session_state.broadcasting = True
+                            if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
+                                st.session_state.broadcasting = True
+                                with st.spinner("Fetching play-by-play data..."):
                                     play_data = get_play_by_play(game_data["Score"]["ScoreID"])
 
+                                with broadcast_container:
                                     if play_data and play_data["Plays"]:
                                         st.session_state.last_sequence = max(
                                             play["Sequence"] for play in play_data["Plays"]
                                         )
                                         st.info("Broadcast is running...")
-                                        with st.spinner("Generating initial broadcast..."):
+
+                                        with st.spinner("Generating play-by-play broadcast..."):
                                             latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
                                             preferences = prepare_user_preferences(
                                                 selected_players, input_prompt
@@ -171,20 +174,44 @@ if st.session_state.logged_in:
                                                 preferences=preferences,
                                                 temperature=broadcast_temp,
                                             )
-                                            with broadcast_container:
-                                                st.chat_message("ai").markdown(
-                                                    f"**Live Broadcast Update:**\n{broadcast_content}"
-                                                )
+                                            st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
                                     else:
                                         st.error("Failed to fetch initial play-by-play data. Ending broadcast.")
                                         st.session_state.broadcasting = False
 
-                            with col2:
-                                if st.button("Clear Broadcast", key="clear_broadcast"):
-                                    st.session_state.broadcasting = False
-                                    st.session_state.last_sequence = None
-                                    with broadcast_container:
-                                        st.empty()
+                            while st.session_state.broadcasting:
+                                play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+
+                                with broadcast_container:
+                                    if not play_data:
+                                        st.error("Failed to fetch play-by-play data. Ending broadcast.")
+                                        st.session_state.broadcasting = False
+                                        break
+
+                                    with st.spinner("Fetching play-by-play data..."):
+                                        new_plays = filter_new_plays(
+                                            play_data, st.session_state.last_sequence
+                                        )
+
+                                    if new_plays:
+                                        st.session_state.last_sequence = max(
+                                            play["Sequence"] for play in new_plays
+                                        )
+
+                                        for play in new_plays:
+                                            with st.spinner("Generating broadcast update..."):
+                                                preferences = prepare_user_preferences(
+                                                    selected_players, input_prompt
+                                                )
+                                                broadcast_content = generate_broadcast(
+                                                    game_info=play,
+                                                    preferences=preferences,
+                                                    temperature=broadcast_temp,
+                                                )
+                                                st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
+
+                                        with st.spinner("Waiting for next play..."):
+                                            time.sleep(30)
                         else:
                             with broadcast_container:
                                 st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
