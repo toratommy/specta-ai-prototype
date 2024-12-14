@@ -72,7 +72,7 @@ if st.session_state.logged_in:
         "Replay API Key",
         value=st.secrets["api_keys"]["sportsdataio"],
         type="password",
-        help="Click the info icon for details on generating a new API key [here](https://sportsdata.io/members/replays).",
+        help="Click the link for details on generating a new replay API key [here](https://sportsdata.io/members/replays).",
     )
     nfl_schedule = get_nfl_schedule(replay_api_key)
 
