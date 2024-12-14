@@ -39,7 +39,7 @@ def sign_out():
     st.session_state.username = ""
 
 # Login Dialog
-@st.dialog("Login", closable=False)
+@st.dialog("Login")
 def login_dialog():
     username = st.text_input("Username", key="login_username")
     password = st.text_input("Password", type="password", key="login_password")
