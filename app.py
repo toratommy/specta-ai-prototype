@@ -39,7 +39,7 @@ def sign_out():
     st.session_state.username = ""
 
 # Login Dialog
-@st.dialog("Login")
+@st.dialog("Login", closable=False)
 def login_dialog():
     username = st.text_input("Username", key="login_username")
     password = st.text_input("Password", type="password", key="login_password")
@@ -47,7 +47,7 @@ def login_dialog():
         if authenticate(username, password):
             st.session_state.logged_in = True
             st.session_state.username = username
-            st.sidebar.success("Login successful!")
+            st.success("Login successful!")
             st.experimental_rerun()
         else:
             st.error("Invalid credentials.")
@@ -58,10 +58,11 @@ if not st.session_state.logged_in:
 
 # Sidebar Content After Login
 if st.session_state.logged_in:
-    st.sidebar.header(f"Welcome, {st.session_state.username}")
-    if st.sidebar.button("Sign Out"):
-        sign_out()
-        st.experimental_rerun()
+    with st.sidebar:
+        st.header(f"Welcome, {st.session_state.username}")
+        if st.button("Sign Out"):
+            sign_out()
+            st.experimental_rerun()
 
 # Main Content After Login
 if st.session_state.logged_in:
