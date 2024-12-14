@@ -59,7 +59,13 @@ else:
 if st.session_state.logged_in:
     st.sidebar.header("Game Selection")
     st.sidebar.write("Choose a date and game to customize your broadcast:")
-    nfl_schedule = get_nfl_schedule()
+    replay_api_key = st.sidebar.text_input(
+        "Replay API Key",
+        value=st.secrets["api_keys"]["sportsdataio"],
+        type="password",
+        help="Click the info icon for details on generating a new API key [here](https://sportsdata.io/members/replays).",
+    )
+    nfl_schedule = get_nfl_schedule(replay_api_key)
 
     if nfl_schedule:
         default_date = datetime(2024, 1, 20)
@@ -80,7 +86,7 @@ if st.session_state.logged_in:
             )
 
             if selected_score_id != "Select a Game":
-                game_data = get_game_details(selected_score_id)
+                game_data = get_game_details(selected_score_id, replay_api_key)
 
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
@@ -120,7 +126,7 @@ if st.session_state.logged_in:
                         def player_selections():
                             all_players = [
                                 f"{player['Name']} ({player['Position']}, {player['Team']})"
-                                for player in get_players_by_team(home_team) + get_players_by_team(away_team)
+                                for player in get_players_by_team(home_team, replay_api_key) + get_players_by_team(away_team, replay_api_key)
                             ]
                             selected_players = st.multiselect("Select Players of Interest", all_players)
                             return selected_players
@@ -157,7 +163,7 @@ if st.session_state.logged_in:
 
                                 with broadcast_container:
                                     with st.spinner("Fetching play-by-play data..."):
-                                        play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+                                        play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
                                         
                                     if play_data and play_data["Plays"]:
                                         st.session_state.last_sequence = max(
@@ -184,7 +190,7 @@ if st.session_state.logged_in:
                                     st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
 
                             while st.session_state.broadcasting:
-                                play_data = get_play_by_play(game_data["Score"]["ScoreID"])
+                                play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
 
                                 with broadcast_container:
                                     if not play_data:
