@@ -7,6 +7,7 @@ from sports_data import (
     get_game_details,
     get_players_by_team,
     get_play_by_play,
+    get_current_replay_time,
     filter_new_plays,
 )
 from llm_interface import generate_game_summary, generate_broadcast
@@ -68,8 +69,9 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule(replay_api_key)
 
     if nfl_schedule:
-        default_date = datetime(2024, 1, 20)
-        selected_date = st.sidebar.date_input("Select Date:", value=default_date)
+        # Fetch current replay time for default date
+        default_date = get_current_replay_time(replay_api_key) or datetime.now()
+        selected_date = st.sidebar.date_input("Select Date:", value=default_date.date())
 
         games_on_date = [
             game for game in nfl_schedule if datetime.strptime(game["Date"], "%Y-%m-%dT%H:%M:%S").date() == selected_date

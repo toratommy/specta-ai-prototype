@@ -1,5 +1,6 @@
 import requests
 import streamlit as st
+from datetime import datetime
 
 # Base URL for the SportsDataIO Replay API
 BASE_URL = "https://replay.sportsdata.io/api/v3/nfl/"
@@ -111,3 +112,15 @@ def filter_new_plays(play_data, last_sequence):
     all_plays = play_data.get("Plays", [])
     new_plays = [play for play in all_plays if play["Sequence"] > last_sequence]
     return new_plays
+
+def get_current_replay_time(replay_api_key):
+    try:
+        url = f"https://replay.sportsdata.io/api/metadata?key={replay_api_key}"
+        response = requests.get(url)
+        response.raise_for_status()
+        current_time = response.json().get("CurrentTime")
+        return datetime.fromisoformat(current_time.split("Z")[0]) if current_time else None
+    except Exception as e:
+        st.error(f"Error fetching current replay time: {e}")
+        return None
+
