@@ -63,6 +63,7 @@ if st.session_state.logged_in:
         if st.button("Sign Out"):
             sign_out()
             st.rerun()
+        st.divider()
 
 # Main Content After Login
 if st.session_state.logged_in:
