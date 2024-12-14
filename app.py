@@ -62,7 +62,7 @@ if st.session_state.logged_in:
         st.header(f"Welcome, {st.session_state.username}")
         if st.button("Sign Out"):
             sign_out()
-            st.experimental_rerun()
+            st.rerun()
 
 # Main Content After Login
 if st.session_state.logged_in:
