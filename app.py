@@ -12,6 +12,14 @@ from sports_data import (
 )
 from llm_interface import generate_game_summary, generate_broadcast
 from utils.prompt_helpers import prepare_user_preferences
+from utils.utils_functions import (
+    initialize_session_state,
+    login_dialog,
+    sign_out,
+    player_selections,
+    user_prompt,
+    temperature_broadcast
+)
 
 # Add the logo to the top of the sidebar
 st.sidebar.image("assets/logo.png", use_container_width=True)
@@ -21,36 +29,7 @@ st.title("Specta AI")
 st.header("Your AI Sports Viewing Companion")
 st.divider()
 
-# Initialize session state variables
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "username" not in st.session_state:
-    st.session_state.username = ""
-if "broadcasting" not in st.session_state:
-    st.session_state.broadcasting = False
-if "last_sequence" not in st.session_state:
-    st.session_state.last_sequence = None
-if "game_summary" not in st.session_state:
-    st.session_state.game_summary = None
-
-# Function to handle sign-out
-def sign_out():
-    st.session_state.logged_in = False
-    st.session_state.username = ""
-
-# Login Dialog
-@st.dialog("Login")
-def login_dialog():
-    username = st.text_input("Username", key="login_username")
-    password = st.text_input("Password", type="password", key="login_password")
-    if st.button("Login", key="login_button"):
-        if authenticate(username, password):
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.success("Login successful!")
-            st.rerun()
-        else:
-            st.error("Invalid credentials.")
+initialize_session_state()
 
 # Trigger login dialog if not logged in
 if not st.session_state.logged_in:
@@ -132,36 +111,8 @@ if st.session_state.logged_in:
                     with tab2:
                         st.write("### Customized Play-by-Play Broadcast")
 
-                        # Player selection fragment
-                        @st.fragment 
-                        def player_selections():
-                            all_players = [
-                                f"{player['Name']} ({player['Position']}, {player['Team']})"
-                                for player in get_players_by_team(home_team, replay_api_key) + get_players_by_team(away_team, replay_api_key)
-                            ]
-                            selected_players = st.multiselect("Select Players of Interest", all_players)
-                            return selected_players
-
-                        # User prompt fragment
-                        @st.fragment 
-                        def user_prompt():
-                            user_prompt = st.text_area(
-                                "Enter 1-2 sentences about how you'd like the play-by-play broadcast tailored "
-                                "(e.g., tone, storyline)."
-                            )
-                            return user_prompt
-                        
-                        # Temperature fragment
-                        @st.fragment 
-                        def temperature_broadcast():
-                            temperature_broadcast = st.slider(
-                                "Set the creativity level (temperature):",
-                                0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
-                            )
-                            return temperature_broadcast
-
                         # Initialize user selection variables
-                        selected_players = player_selections()
+                        selected_players = player_selections(home_team, away_team, replay_api_key)
                         input_prompt = user_prompt()
                         broadcast_temp = temperature_broadcast()
 
