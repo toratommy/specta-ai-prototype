@@ -74,13 +74,14 @@ def format_broadcast_update(play, preferences, priority_players):
         preferences=preferences,
     )
 
-    # Check if any priority players are involved
-    involved_players = [player for player in priority_players if player in broadcast_content]
+    # Highlight priority players
+    highlighted_broadcast = broadcast_content
+    for player in priority_players:
+        if player in broadcast_content:
+            highlighted_broadcast = highlighted_broadcast.replace(
+                player,
+                f"**<span style='color:gold'>⭐ {player}</span>**"
+            )
 
-    if involved_players:
-        highlighted_players = ', '.join([f"**<span style='color:gold'>⭐ {player}</span>**" for player in involved_players])
-        formatted_update = f"**Live Broadcast Update:**\n{broadcast_content}\n\n**Priority Players:** {highlighted_players}"
-    else:
-        formatted_update = f"**Live Broadcast Update:**\n{broadcast_content}"
-
+    formatted_update = f"**Live Broadcast Update:**\n{highlighted_broadcast}"
     return formatted_update
