@@ -38,23 +38,30 @@ def sign_out():
     st.session_state.logged_in = False
     st.session_state.username = ""
 
-# Login Section
-if not st.session_state.logged_in:
-    st.sidebar.header("Login")
-    username = st.sidebar.text_input("Username", key="login_username")
-    password = st.sidebar.text_input("Password", type="password", key="login_password")
-
-    if st.sidebar.button("Login"):
+# Login Dialog
+@st.dialog("Login")
+def login_dialog():
+    username = st.text_input("Username", key="login_username")
+    password = st.text_input("Password", type="password", key="login_password")
+    if st.button("Login", key="login_button"):
         if authenticate(username, password):
             st.session_state.logged_in = True
             st.session_state.username = username
             st.sidebar.success("Login successful!")
+            st.experimental_rerun()
         else:
-            st.sidebar.error("Invalid credentials.")
-else:
+            st.error("Invalid credentials.")
+
+# Trigger login dialog if not logged in
+if not st.session_state.logged_in:
+    login_dialog()
+
+# Sidebar Content After Login
+if st.session_state.logged_in:
     st.sidebar.header(f"Welcome, {st.session_state.username}")
     if st.sidebar.button("Sign Out"):
         sign_out()
+        st.experimental_rerun()
 
 # Main Content After Login
 if st.session_state.logged_in:
