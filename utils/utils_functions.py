@@ -1,15 +1,10 @@
 import streamlit as st
 from utils.auth import authenticate
 from sports_data import (
-    get_nfl_schedule,
-    get_game_details,
-    get_players_by_team,
-    get_play_by_play,
-    get_current_replay_time,
-    filter_new_plays,
+    get_players_by_team
 )
-from llm_interface import generate_game_summary, generate_broadcast
-from utils.prompt_helpers import prepare_user_preferences
+from llm_interface import generate_broadcast
+
 
 # Initialize session state variables
 def initialize_session_state():
@@ -70,3 +65,22 @@ def temperature_broadcast():
         0.0, 1.0, 0.7, 0.1, key="temperature_broadcast"
     )
     return temperature_broadcast
+
+# Format Broadcast Updates
+def format_broadcast_update(play, preferences, priority_players):
+    """Format broadcast updates with a star icon for priority players."""
+    broadcast_content = generate_broadcast(
+        game_info=play,
+        preferences=preferences,
+    )
+
+    # Check if any priority players are involved
+    involved_players = [player for player in priority_players if player in broadcast_content]
+
+    if involved_players:
+        highlighted_players = ', '.join([f"**<span style='color:gold'>⭐ {player}</span>**" for player in involved_players])
+        formatted_update = f"**Live Broadcast Update:**\n{broadcast_content}\n\n**Priority Players:** {highlighted_players}"
+    else:
+        formatted_update = f"**Live Broadcast Update:**\n{broadcast_content}"
+
+    return formatted_update

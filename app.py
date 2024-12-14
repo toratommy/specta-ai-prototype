@@ -1,16 +1,14 @@
 import streamlit as st
 import time
 from datetime import datetime
-from utils.auth import authenticate
 from sports_data import (
     get_nfl_schedule,
     get_game_details,
-    get_players_by_team,
     get_play_by_play,
     get_current_replay_time,
     filter_new_plays,
 )
-from llm_interface import generate_game_summary, generate_broadcast
+from llm_interface import generate_game_summary
 from utils.prompt_helpers import prepare_user_preferences
 from utils.utils_functions import (
     initialize_session_state,
@@ -18,7 +16,8 @@ from utils.utils_functions import (
     sign_out,
     player_selections,
     user_prompt,
-    temperature_broadcast
+    temperature_broadcast,
+    format_broadcast_update
 )
 
 # Add the logo to the top of the sidebar
@@ -117,7 +116,7 @@ if st.session_state.logged_in:
                         broadcast_temp = temperature_broadcast()
 
                         # Scrollable container for broadcasts
-                        broadcast_container = st.container(border = True, height = 450)
+                        broadcast_container = st.container(border=True, height=450)
 
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
@@ -138,12 +137,10 @@ if st.session_state.logged_in:
                                             preferences = prepare_user_preferences(
                                                 selected_players, input_prompt
                                             )
-                                            broadcast_content = generate_broadcast(
-                                                game_info=latest_play,
-                                                preferences=preferences,
-                                                temperature=broadcast_temp,
+                                            formatted_update = format_broadcast_update(
+                                                latest_play, preferences, selected_players
                                             )
-                                            st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
+                                            st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
                                     else:
                                         st.error("Failed to fetch initial play-by-play data. Ending broadcast.")
                                         st.session_state.broadcasting = False
@@ -175,12 +172,10 @@ if st.session_state.logged_in:
                                                 preferences = prepare_user_preferences(
                                                     selected_players, input_prompt
                                                 )
-                                                broadcast_content = generate_broadcast(
-                                                    game_info=play,
-                                                    preferences=preferences,
-                                                    temperature=broadcast_temp,
+                                                formatted_update = format_broadcast_update(
+                                                    play, preferences, selected_players
                                                 )
-                                                st.chat_message("ai").markdown(f"**Live Broadcast Update:**\n{broadcast_content}")
+                                                st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
                                         with st.spinner("Waiting for next play..."):
                                             time.sleep(30)
