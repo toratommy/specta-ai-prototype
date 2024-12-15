@@ -67,21 +67,25 @@ def temperature_broadcast():
     return temperature_broadcast
 
 # Format Broadcast Updates
-def format_broadcast_update(play, preferences, priority_players):
-    """Format broadcast updates with a star icon for priority players."""
+def format_broadcast_update(play, preferences, selected_players):
+    """
+    Format broadcast updates with a star icon for priority players.
+    Highlights player names by removing team and position details.
+    """
+    # Generate broadcast content from the LLM
     broadcast_content = generate_broadcast(
         game_info=play,
         preferences=preferences,
     )
 
-    # Highlight priority players
-    highlighted_broadcast = broadcast_content
-    for player in priority_players:
-        if player in broadcast_content:
-            highlighted_broadcast = highlighted_broadcast.replace(
-                player,
-                f"**<span style='color:gold'>⭐ {player}</span>**"
+    # Extract player names without team/position details
+    for player in selected_players:
+        player_name = player.split(" (")[0]
+        if player_name in broadcast_content:
+            broadcast_content = broadcast_content.replace(
+                player_name,
+                f"**<span style='color:gold'>⭐ {player_name}</span>**"
             )
 
-    formatted_update = f"**Live Broadcast Update:**\n{highlighted_broadcast}"
+    formatted_update = f"**Live Broadcast Update:**\n{broadcast_content}"
     return formatted_update
