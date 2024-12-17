@@ -9,7 +9,7 @@ From the provided game information, extract the relevant game context, including
 - Time Remaining:
 - Ball Location:
 - Possession:
-- Current Score:
+- Score: (away score - home score) 
 
 Use this context as a header (the update should always start with these 4 bullet points). 
 Then, generate a customized play-by-play broadcast focused on what happened in the play. 
