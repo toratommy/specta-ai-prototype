@@ -4,4 +4,11 @@ Game Information:
 User Preferences:
 {preferences}
 
-Generate a customized play-by-play broadcast tailored to the user's preferences, focusing on tone, storyline, and player interest.
+Instruction:
+From the provided game information, extract the relevant game context, including:
+- Time Remaining
+- Ball Location
+- Possession
+- Current Score
+
+Use this context as a header. Then, generate a customized play-by-play broadcast focused on what happened in the play. If the play involves a priority player from the user's preferences, provide a detailed update. Otherwise, limit the update to 4 sentences maximum, adjusting for the specified tone, storyline, and player interest.
