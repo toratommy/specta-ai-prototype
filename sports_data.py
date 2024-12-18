@@ -1,6 +1,7 @@
 import requests
 import streamlit as st
 from datetime import datetime
+import re
 
 # Base URL for the SportsDataIO Replay API
 BASE_URL = "https://replay.sportsdata.io/api/v3/nfl/"
@@ -11,7 +12,7 @@ def extract_season_code(replay_api_key):
         response = requests.get(url)
         response.raise_for_status()
         # Extract season codes from AvailableEndpoints
-        endpoints = response.get("AvailableEndpoints", [])
+        endpoints = response.json().get("AvailableEndpoints", [])
         season_codes = set(re.findall(r"/(\d{4}(?:post|pre|reg))/", " ".join(endpoints)))
         return season_codes.pop() if season_codes else None
     except Exception as e:
