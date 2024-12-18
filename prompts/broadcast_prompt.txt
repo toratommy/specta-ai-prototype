@@ -4,17 +4,20 @@ Game Information:
 Play Information:
 {play_info}
 
-User Preferences:
+User Preferences (this incldudes a priority players, latest box scores for priority players if they were involved in the play, and the desired tone of the update.):
 {preferences}
 
 Instruction:
-From the provided game_info, extract the relevant game context, including:
+From the provided game information, extract the relevant game context, including:
 - Time Remaining: (format this as time and quarter)
 - Ball Location: (format this as team and yard line e.g., BAL 27-yard line)
 - Possession: (format this as team initials)
 - Score: (format this as away team score - home team score)
 
 Use this context as a header (the update should always start with these 4 bullet points). 
-Then, generate a customized play-by-play broadcast focused on what happened in the play (inferred from play_info). 
-If the play involves a priority player from the user's preferences, provide a detailed update. Do not talk about a priority player if they were not involved in the play.
-Otherwise, limit the update to 4 sentences maximum, adjusting for the specified tone, storyline, and player interest.
+Then, generate a customized play-by-play broadcast focused on what happened in the play (inferred from the provided play information). 
+ONLY IF the play involves a priority player from the user's preferences, provide a detailed update. 
+This update should incldue what happened during the play as well as key highlights from the box scores for each of the priority players involved in the play.
+
+Do not talk about a priority player if they were not involved in the play.
+If no priority player is specified, limit the update to 4 sentences maximum, adjusting for the specified tone/storyline
