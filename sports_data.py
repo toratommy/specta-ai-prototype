@@ -142,14 +142,14 @@ def get_player_box_scores(score_id, player_ids, replay_api_key):
         box_scores = response.json()
 
         # Ensure the structure contains player statistics
-        if "PlayerStats" not in box_scores:
+        if "PlayerGames" not in box_scores:
             st.error("Player statistics not found in the response.")
             return {}
 
         # Filter relevant players from the correct key
         return {
             player["PlayerID"]: player 
-            for player in box_scores["PlayerStats"] 
+            for player in box_scores["PlayerGames"] 
             if player["PlayerID"] in player_ids
         }
 
