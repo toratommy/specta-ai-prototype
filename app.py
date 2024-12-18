@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import datetime
 from sports_data import (
+    extract_season_code,
     get_nfl_schedule,
     get_game_details,
     get_current_replay_time
@@ -51,7 +52,9 @@ if st.session_state.logged_in:
         type="password",
         help="Click the link for details on generating a new replay API key [here](https://sportsdata.io/members/replays).",
     )
-    nfl_schedule = get_nfl_schedule(replay_api_key)
+
+    season_code = extract_season_code(replay_api_key)
+    nfl_schedule = get_nfl_schedule(replay_api_key, season_code)
 
     if nfl_schedule:
         # Fetch current replay time for default date

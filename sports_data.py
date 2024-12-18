@@ -5,11 +5,24 @@ from datetime import datetime
 # Base URL for the SportsDataIO Replay API
 BASE_URL = "https://replay.sportsdata.io/api/v3/nfl/"
 
-def get_nfl_schedule(replay_api_key):
+def extract_season_code(replay_api_key):
+    try:
+        url = f"https://replay.sportsdata.io/api/metadata?key={replay_api_key}"
+        response = requests.get(url)
+        response.raise_for_status()
+        # Extract season codes from AvailableEndpoints
+        endpoints = response.get("AvailableEndpoints", [])
+        season_codes = set(re.findall(r"/(\d{4}(?:post|pre|reg))/", " ".join(endpoints)))
+        return season_codes.pop() if season_codes else None
+    except Exception as e:
+        st.error(f"Error fetching metadata: {e}")
+        return None
+    
+def get_nfl_schedule(replay_api_key, season_code):
     """
-    Fetches the NFL schedule for the 2023 postseason from the SportsDataIO Replay API.
+    Fetches the NFL schedule from the SportsDataIO Replay API.
     """
-    url = f"{BASE_URL}scores/json/schedulesbasic/2023post"
+    url = f"{BASE_URL}scores/json/schedulesbasic/{season_code}"
     params = {"key": replay_api_key}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
