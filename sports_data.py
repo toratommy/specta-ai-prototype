@@ -129,34 +129,33 @@ def get_current_replay_time(replay_api_key):
 
 def get_player_box_scores(score_id, player_ids, replay_api_key):
     """
-    Fetches box score data for specific players in the current game from the SportsDataIO Replay API.
-
-    Parameters:
-        score_id (str): The Score ID of the game.
-        player_ids (list[int]): A list of Player IDs to filter by.
-        replay_api_key (str): The API key for accessing the SportsDataIO Replay API.
-
-    Returns:
-        dict: Dictionary of box score data for the specified players.
+    Fetches player box scores from the API and filters relevant players.
     """
     url = f"{BASE_URL}stats/json/boxscorebyscoreidv3/{score_id}"
-    params = {"key": replay_api_key}  # API key as query parameter
+    params = {"key": replay_api_key}
+
     try:
         response = requests.get(url, params=params)
-        response.raise_for_status()  # Raise exception for HTTP errors
+        response.raise_for_status()
+
+        # Parse response as dictionary
         box_scores = response.json()
 
-        # Filter player box score data
-        players_data = {
-            player["PlayerID"]: player for player in box_scores if player["PlayerID"] in player_ids
+        # Ensure the structure contains player statistics
+        if "PlayerStats" not in box_scores:
+            st.error("Player statistics not found in the response.")
+            return {}
+
+        # Filter relevant players from the correct key
+        return {
+            player["PlayerID"]: player 
+            for player in box_scores["PlayerStats"] 
+            if player["PlayerID"] in player_ids
         }
 
-        if not players_data:
-            st.warning(f"No box score data found for provided PlayerIDs in ScoreID {score_id}.")
-        return players_data
-
     except requests.exceptions.RequestException as e:
-        st.error(f"Failed to fetch player box scores for ScoreID {score_id}: {e}")
-        return None
+        st.error(f"Failed to fetch player box scores: {e}")
+        return {}
+
 
 
