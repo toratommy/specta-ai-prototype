@@ -217,15 +217,13 @@ def process_new_plays(game_data, replay_api_key, broadcast_container, selected_p
             for play in new_plays:
                 with st.spinner("Generating broadcast update..."):
                     involved_player_ids = get_involved_priority_players(play, selected_players_dict)
-                    #test
-                    st.write(involved_player_ids)
-                    
+
                     # Fetch box scores for involved players
                     box_scores = {}
                     if involved_player_ids:
                         box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
-                        #test
-                        st.write(box_scores)
+                        # test
+                        # st.write(box_scores)
 
                     # Enhance user preferences
                     preferences = prepare_user_preferences(
