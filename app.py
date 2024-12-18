@@ -180,7 +180,7 @@ if st.session_state.logged_in:
                                                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
                                         with st.spinner("Waiting for next play..."):
-                                            time.sleep(30)
+                                            time.sleep(10)
                         else:
                             with broadcast_container:
                                 st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
