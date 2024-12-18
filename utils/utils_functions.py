@@ -73,14 +73,15 @@ def image_upload():
     return image_upload
 
 # Format Broadcast Updates
-def format_broadcast_update(play, preferences, selected_players):
+def format_broadcast_update(game_data, play, preferences, selected_players):
     """
     Format broadcast updates with a star icon for priority players.
     Highlights player names by removing team and position details.
     """
     # Generate broadcast content from the LLM
     broadcast_content = generate_broadcast(
-        game_info=play,
+        game_info=game_data,
+        play_info=play,
         preferences=preferences,
     )
 

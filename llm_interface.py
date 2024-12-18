@@ -118,12 +118,13 @@ def generate_game_summary(game_data, temperature=0.7):
         st.error(f"Failed to generate game summary: {e}")
         return box_score_json, "Error generating game summary."
 
-def generate_broadcast(game_info, preferences, temperature=0.7):
+def generate_broadcast(game_info, play_info, preferences, temperature=0.7):
     """
     Generates a customized play-by-play broadcast using OpenAI's API.
 
     Parameters:
         game_info (str): Information about the selected game.
+        play_info (str): Information about the latest play.
         preferences (str): User preferences for tone, storyline, and players of interest.
         temperature (float): Temperature setting for the LLM.
 
@@ -134,7 +135,7 @@ def generate_broadcast(game_info, preferences, temperature=0.7):
 
     # Load the broadcast prompt template
     prompt_template = load_prompt_template("broadcast_prompt.txt")
-    prompt = prompt_template.format(game_info=game_info, preferences=preferences)
+    prompt = prompt_template.format(game_info=game_info, play_info=play_info, preferences=preferences)
 
     # Call the OpenAI API
     try:
@@ -145,7 +146,6 @@ def generate_broadcast(game_info, preferences, temperature=0.7):
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
-            max_tokens=350,
         )
         return chat_completion.choices[0].message.content.strip()
     except Exception as e:

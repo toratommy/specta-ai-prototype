@@ -1,6 +1,9 @@
 Game Information:
 {game_info}
 
+Play Information:
+{play_info}
+
 User Preferences:
 {preferences}
 
@@ -12,6 +15,6 @@ From the provided game_info, extract the relevant game context, including:
 - Score: (format this as away team score - home team score)
 
 Use this context as a header (the update should always start with these 4 bullet points). 
-Then, generate a customized play-by-play broadcast focused on what happened in the play. 
+Then, generate a customized play-by-play broadcast focused on what happened in the play (inferred from play_info). 
 If the play involves a priority player from the user's preferences, provide a detailed update. Do not talk about a priority player if they were not involved in the play.
 Otherwise, limit the update to 4 sentences maximum, adjusting for the specified tone, storyline, and player interest.
