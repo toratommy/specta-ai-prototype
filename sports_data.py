@@ -124,3 +124,34 @@ def get_current_replay_time(replay_api_key):
         st.error(f"Error fetching current replay time: {e}")
         return None
 
+
+def get_player_box_scores(score_id, player_id, replay_api_key):
+    """
+    Fetches box score data for a specific player in the current game from the SportsDataIO Replay API.
+
+    Parameters:
+        score_id (str): The Score ID of the game.
+        player_id (int): The Player ID to filter by.
+        replay_api_key (str): The API key for accessing the SportsDataIO Replay API.
+
+    Returns:
+        dict: Box score data for the specified player if found, otherwise None.
+    """
+    url = f"{BASE_URL}stats/json/boxscorebyscoreidv3/{score_id}"
+    params = {"key": replay_api_key}  # API key as query parameter
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise exception for HTTP errors
+        box_scores = response.json()
+
+        # Use a dictionary lookup for efficiency
+        player_data = {player["PlayerID"]: player for player in box_scores}.get(player_id)
+        if not player_data:
+            st.warning(f"No box score data found for PlayerID {player_id} in ScoreID {score_id}.")
+        return player_data
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch player box scores for ScoreID {score_id}: {e}")
+        return None
+
+

@@ -112,7 +112,8 @@ if st.session_state.logged_in:
                         st.write("### Customized Play-by-Play Broadcast")
 
                         # Initialize user selection variables
-                        selected_players = player_selections(home_team, away_team, replay_api_key)
+                        selected_players_dict = player_selections(home_team, away_team, replay_api_key)
+                        selected_players = list(selected_players_dict.keys())
                         uploaded_image = image_upload()
                         input_prompt = user_prompt()
                         broadcast_temp = temperature_broadcast()

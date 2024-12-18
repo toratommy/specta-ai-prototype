@@ -41,12 +41,35 @@ def login_dialog():
 # Player selection fragment
 @st.fragment 
 def player_selections(home_team, away_team, replay_api_key):
-    all_players = [
-        f"{player['Name']} ({player['Position']}, {player['Team']})"
-        for player in get_players_by_team(home_team, replay_api_key) + get_players_by_team(away_team, replay_api_key)
-    ]
-    selected_players = st.multiselect("Select Players of Interest", all_players)
-    return selected_players
+    """
+    Allows users to select players of interest from both teams.
+
+    Parameters:
+        home_team (str): Home team name.
+        away_team (str): Away team name.
+        replay_api_key (str): API key for the SportsDataIO Replay API.
+
+    Returns:
+        dict: Dictionary of selected players with names as keys and IDs as values.
+    """
+    # Fetch players from both teams
+    home_players = get_players_by_team(home_team, replay_api_key)
+    away_players = get_players_by_team(away_team, replay_api_key)
+
+    # Combine and format players for selection
+    all_players = {
+        f"{p['Name']} ({p['Position']}, {p['Team']})": p['PlayerID']
+        for p in home_players + away_players
+    }
+
+    # Allow users to select players
+    selected_player_keys = st.multiselect(
+        "Select Players of Interest", list(all_players.keys())
+    )
+
+    # Return selected players as a dictionary
+    return {key: all_players[key] for key in selected_player_keys}
+
 
 # User prompt fragment
 @st.fragment 
