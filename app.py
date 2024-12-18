@@ -4,12 +4,9 @@ from datetime import datetime
 from sports_data import (
     get_nfl_schedule,
     get_game_details,
-    get_play_by_play,
-    get_current_replay_time,
-    filter_new_plays,
+    get_current_replay_time
 )
 from llm_interface import generate_game_summary
-from utils.prompt_helpers import prepare_user_preferences
 from utils.utils_functions import (
     initialize_session_state,
     login_dialog,
@@ -18,7 +15,8 @@ from utils.utils_functions import (
     image_upload,
     user_prompt,
     temperature_broadcast,
-    format_broadcast_update
+    handle_broadcast_start,
+    process_new_plays
 )
 
 # Add the logo to the top of the sidebar
@@ -123,65 +121,17 @@ if st.session_state.logged_in:
 
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
-                                st.session_state.broadcasting = True
-
-                                with broadcast_container:
-                                    with st.spinner("Fetching play-by-play data..."):
-                                        play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
-                                        
-                                    if play_data and play_data["Plays"]:
-                                        st.session_state.last_sequence = max(
-                                            play["Sequence"] for play in play_data["Plays"]
-                                        )
-                                        st.info("Broadcast is running...")
-
-                                        with st.spinner("Generating play-by-play broadcast..."):
-                                            latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
-                                            preferences = prepare_user_preferences(
-                                                selected_players, input_prompt
-                                            )
-                                            formatted_update = format_broadcast_update(
-                                                play_data['Score'], latest_play, preferences, selected_players
-                                            )
-                                            st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
-                                    else:
-                                        st.error("Failed to fetch initial play-by-play data. Ending broadcast.")
-                                        st.session_state.broadcasting = False
+                                handle_broadcast_start(
+                                    game_data, replay_api_key, broadcast_container, selected_players, input_prompt
+                                )
                             else:
                                 with broadcast_container:
                                     st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
 
                             while st.session_state.broadcasting:
-                                play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
-
-                                with broadcast_container:
-                                    if not play_data:
-                                        st.error("Failed to fetch play-by-play data. Ending broadcast.")
-                                        st.session_state.broadcasting = False
-                                        break
-
-                                    with st.spinner("Fetching play-by-play data..."):
-                                        new_plays = filter_new_plays(
-                                            play_data, st.session_state.last_sequence
-                                        )
-
-                                    if new_plays:
-                                        st.session_state.last_sequence = max(
-                                            play["Sequence"] for play in new_plays
-                                        )
-
-                                        for play in new_plays:
-                                            with st.spinner("Generating broadcast update..."):
-                                                preferences = prepare_user_preferences(
-                                                    selected_players, input_prompt
-                                                )
-                                                formatted_update = format_broadcast_update(
-                                                    play_data['Score'], play, preferences, selected_players
-                                                )
-                                                st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
-
-                                        with st.spinner("Waiting for next play..."):
-                                            time.sleep(10)
+                                process_new_plays(
+                                    game_data, replay_api_key, broadcast_container, selected_players, input_prompt
+                                )
                         else:
                             with broadcast_container:
                                 st.error("The game is not in progress. Play-by-play broadcast cannot be started.")

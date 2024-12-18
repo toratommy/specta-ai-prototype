@@ -1,9 +1,13 @@
 import streamlit as st
 from utils.auth import authenticate
 from sports_data import (
-    get_players_by_team
+    get_players_by_team,
+    get_play_by_play,
+    filter_new_plays
 )
+from utils.prompt_helpers import prepare_user_preferences
 from llm_interface import generate_broadcast
+import time
 
 
 # Initialize session state variables
@@ -119,3 +123,79 @@ def format_broadcast_update(game_data, play, preferences, selected_players):
 
     formatted_update = f"**Live Broadcast Update:**\n{broadcast_content}"
     return formatted_update
+
+# Start Play-by-Play Broadcast
+def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selected_players, input_prompt):
+    """
+    Starts the play-by-play broadcast by fetching initial data and generating the first update.
+    
+    Parameters:
+        game_data (dict): Game data containing the score and other details.
+        replay_api_key (str): API key for the SportsDataIO Replay API.
+        broadcast_container (Streamlit container): UI container for displaying broadcasts.
+        selected_players (list): List of selected player names.
+        input_prompt (str): User-defined prompt for customizing broadcast tone.
+
+    Returns:
+        None
+    """
+    st.session_state.broadcasting = True
+
+    with broadcast_container:
+        with st.spinner("Fetching play-by-play data..."):
+            play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
+
+        if play_data and play_data["Plays"]:
+            st.session_state.last_sequence = max(play["Sequence"] for play in play_data["Plays"])
+            st.info("Broadcast is running...")
+
+            with st.spinner("Generating play-by-play broadcast..."):
+                latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
+                preferences = prepare_user_preferences(selected_players, input_prompt)
+                formatted_update = format_broadcast_update(
+                    play_data['Score'], latest_play, preferences, selected_players
+                )
+                st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
+        else:
+            st.error("Failed to fetch initial play-by-play data. Ending broadcast.")
+            st.session_state.broadcasting = False
+
+# Process New Plays
+def process_new_plays(game_data, replay_api_key, broadcast_container, selected_players, input_prompt):
+    """
+    Fetches and processes new play data, generating updates for each new play.
+    
+    Parameters:
+        game_data (dict): Game data containing the score and other details.
+        replay_api_key (str): API key for the SportsDataIO Replay API.
+        broadcast_container (Streamlit container): UI container for displaying broadcasts.
+        selected_players (list): List of selected player names.
+        input_prompt (str): User-defined prompt for customizing broadcast tone.
+
+    Returns:
+        None
+    """
+    play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
+
+    with broadcast_container:
+        if not play_data:
+            st.error("Failed to fetch play-by-play data. Ending broadcast.")
+            st.session_state.broadcasting = False
+            return
+
+        with st.spinner("Fetching play-by-play data..."):
+            new_plays = filter_new_plays(play_data, st.session_state.last_sequence)
+
+        if new_plays:
+            st.session_state.last_sequence = max(play["Sequence"] for play in new_plays)
+
+            for play in new_plays:
+                with st.spinner("Generating broadcast update..."):
+                    preferences = prepare_user_preferences(selected_players, input_prompt)
+                    formatted_update = format_broadcast_update(
+                        play_data['Score'], play, preferences, selected_players
+                    )
+                    st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
+
+            with st.spinner("Waiting for next play..."):
+                time.sleep(10)
