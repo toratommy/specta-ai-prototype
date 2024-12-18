@@ -109,6 +109,8 @@ def filter_new_plays(play_data, last_sequence):
     Returns:
         list: A list of new plays that occurred after the last sequence.
     """
+    if last_sequence is None:
+        return []
     all_plays = play_data.get("Plays", [])
     new_plays = [play for play in all_plays if play["Sequence"] > last_sequence]
     return new_plays
