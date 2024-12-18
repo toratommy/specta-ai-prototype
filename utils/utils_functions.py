@@ -4,7 +4,8 @@ from sports_data import (
     get_players_by_team,
     get_play_by_play,
     filter_new_plays,
-    get_player_box_scores
+    get_player_box_scores,
+    get_player_season_stats
 )
 from utils.prompt_helpers import prepare_user_preferences
 from llm_interface import generate_broadcast
@@ -222,8 +223,10 @@ def process_new_plays(game_data, replay_api_key, broadcast_container, selected_p
                     box_scores = {}
                     if involved_player_ids:
                         box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
+                        season_stats = get_player_season_stats(involved_player_ids, replay_api_key)
                         # test
                         # st.write(box_scores)
+                        st.write(season_stats)
 
                     # Enhance user preferences
                     preferences = prepare_user_preferences(

@@ -87,7 +87,7 @@ def get_play_by_play(game_id, replay_api_key):
     Returns:
         dict: Play-by-play data for the game.
     """
-    url = f"{BASE_URL.lower()}pbp/json/playbyplay/{game_id}"
+    url = f"{BASE_URL}pbp/json/playbyplay/{game_id}"
     params = {"key": replay_api_key}
     try:
         response = requests.get(url, params=params)
@@ -157,5 +157,43 @@ def get_player_box_scores(score_id, player_ids, replay_api_key):
         st.error(f"Failed to fetch player box scores: {e}")
         return {}
 
+
+def get_player_season_stats(player_ids, replay_api_key):
+    """
+    Fetches player season stats from the API and filters relevant players.
+
+    Parameters:
+        player_ids (list): List of player IDs to filter.
+        replay_api_key (str): API key for authentication.
+
+    Returns:
+        dict: Dictionary of player stats keyed by PlayerID.
+    """
+    url = f"{BASE_URL}stats/json/playerseasonstats/2023post"
+    params = {"key": replay_api_key}
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+
+        # Parse response as a list of player stats
+        season_stats = response.json()
+
+        # Ensure the response is a list
+        if not isinstance(season_stats, list):
+            st.error("Unexpected format received from the API.")
+            return {}
+
+        # Filter relevant players based on provided IDs
+        filtered_stats = {
+            player["PlayerID"]: player 
+            for player in season_stats if player["PlayerID"] in player_ids
+        }
+
+        return filtered_stats
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch player season stats: {e}")
+        return {}
 
 
