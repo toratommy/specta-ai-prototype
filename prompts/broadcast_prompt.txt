@@ -6,10 +6,10 @@ User Preferences:
 
 Instruction:
 From the provided game_info, extract the relevant game context, including:
-- Time Remaining: (format this as time and quarter e.g., 7:20 in the 2nd quarter)
+- Time Remaining: (format this as time and quarter)
 - Ball Location: (format this as team and yard line e.g., BAL 27-yard line)
-- Possession: (format this as team initials, e.g., HOU)
-- Score: (format this as away score - home score e.g., 7 - 3)
+- Possession: (format this as team initials)
+- Score: (format this as away team score - home team score)
 
 Use this context as a header (the update should always start with these 4 bullet points). 
 Then, generate a customized play-by-play broadcast focused on what happened in the play. 
