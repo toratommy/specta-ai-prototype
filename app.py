@@ -131,7 +131,7 @@ if st.session_state.logged_in:
 
                             while st.session_state.broadcasting:
                                 process_new_plays(
-                                    game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
+                                    game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
                                 )
                         else:
                             with broadcast_container:

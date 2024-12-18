@@ -186,7 +186,7 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
             st.session_state.broadcasting = False
 
 # Process New Plays
-def process_new_plays(game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
+def process_new_plays(game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt):
     """
     Fetches and processes new play data, generating updates for each new play.
     Fetches box scores for priority players involved in the play.
@@ -225,7 +225,7 @@ def process_new_plays(game_data, replay_api_key, broadcast_container, selected_p
                     season_stats = {}
                     if involved_player_ids:
                         box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
-                        season_stats = get_player_season_stats(involved_player_ids, replay_api_key)
+                        season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
                         # st.write(season_stats)
 
                     # Enhance user preferences

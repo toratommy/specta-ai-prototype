@@ -172,7 +172,7 @@ def get_player_box_scores(score_id, player_ids, replay_api_key):
         return {}
 
 
-def get_player_season_stats(player_ids, replay_api_key):
+def get_player_season_stats(player_ids, replay_api_key, season_code):
     """
     Fetches player season stats from the API and filters relevant players.
 
@@ -183,7 +183,7 @@ def get_player_season_stats(player_ids, replay_api_key):
     Returns:
         dict: Dictionary of player stats keyed by PlayerID.
     """
-    url = f"{BASE_URL}stats/json/playerseasonstats/2023post"
+    url = f"{BASE_URL}stats/json/playerseasonstats/{season_code}"
     params = {"key": replay_api_key}
 
     try:
