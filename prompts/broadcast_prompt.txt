@@ -23,4 +23,4 @@ Do not talk about a priority player if they were not involved in the play.
 
 ONLY IF the play involves a priority player from the user's preferences, provide a detailed update (6-8 sentences max).
 This update should incldue what happened during the play (2-4 sentences) as well as key highlights from the box scores/season stats for each of the priority players involved in the play (2 sentences max for each player).
-Emphasize box scores over season stats unless the season stats are particularly notable (e.g., 10th touchdown of the season, 1000 years on the season, etc.).
+Emphasize box scores over season stats unless the season stats are particularly notable (e.g., 10th touchdown of the season, 1000 years on the season, etc.) or if its early in the game and the box scores are not yet very insightful.
