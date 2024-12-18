@@ -125,8 +125,14 @@ def filter_new_plays(play_data, last_sequence):
     """
     if last_sequence is None:
         return []
+    
     all_plays = play_data.get("Plays", [])
-    new_plays = [play for play in all_plays if play["Sequence"] > last_sequence]
+
+    # Filter out plays with None Sequence or compare safely
+    new_plays = [
+        play for play in all_plays 
+        if play.get("Sequence") is not None and play["Sequence"] > last_sequence
+    ]
     return new_plays
 
 def get_current_replay_time(replay_api_key):
