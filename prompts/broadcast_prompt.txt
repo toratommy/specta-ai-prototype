@@ -4,7 +4,7 @@ Game Information:
 Play Information:
 {play_info}
 
-User Preferences (this incldudes a priority players, latest box scores for priority players if they were involved in the play, and the desired tone of the update.):
+User Preferences (this incldudes a priority players, latest box scores and season stats for priority players if they were involved in the play, and the desired tone of the update.):
 {preferences}
 
 Instruction:
@@ -22,4 +22,5 @@ If no priority player is specified, limit the update to 4 sentences maximum, adj
 Do not talk about a priority player if they were not involved in the play.
 
 ONLY IF the play involves a priority player from the user's preferences, provide a detailed update (6-8 sentences max).
-This update should incldue what happened during the play (2-4 sentences) as well as key highlights from the box scores for each of the priority players involved in the play (2 sentences max for each player).
+This update should incldue what happened during the play (2-4 sentences) as well as key highlights from the box scores/season stats for each of the priority players involved in the play (2 sentences max for each player).
+Emphasize box scores over season stats unless the season stats are particularly notable (e.g., 10th touchdown of the season, 1000 years on the season, etc.).

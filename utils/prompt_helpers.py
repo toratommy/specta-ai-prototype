@@ -1,9 +1,10 @@
 # Helper functions for prompt-based customization
 
-def prepare_user_preferences(priority_players, box_scores, tone):
+def prepare_user_preferences(priority_players, box_scores, season_stats, tone):
     return {
         "priority_players": priority_players,
         "box_scores": box_scores,
+        "player_season_stats": season_stats,
         "tone": tone,
     }
 

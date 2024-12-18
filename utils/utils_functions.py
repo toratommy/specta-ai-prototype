@@ -173,7 +173,8 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
                 preferences = prepare_user_preferences(
                         priority_players=selected_players_dict, 
-                        box_scores=None, 
+                        box_scores=None,
+                        season_stats=None, 
                         tone=input_prompt
                     )
                 formatted_update = format_broadcast_update(
@@ -221,17 +222,17 @@ def process_new_plays(game_data, replay_api_key, broadcast_container, selected_p
 
                     # Fetch box scores for involved players
                     box_scores = {}
+                    season_stats = {}
                     if involved_player_ids:
                         box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
                         season_stats = get_player_season_stats(involved_player_ids, replay_api_key)
-                        # test
-                        # st.write(box_scores)
-                        st.write(season_stats)
+                        # st.write(season_stats)
 
                     # Enhance user preferences
                     preferences = prepare_user_preferences(
                         priority_players=selected_players_dict, 
                         box_scores=box_scores, 
+                        season_stats=season_stats,
                         tone=input_prompt
                     )
 
