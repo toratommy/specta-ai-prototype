@@ -83,32 +83,10 @@ if st.session_state.logged_in:
                     away_team = game_data["Score"]["AwayTeam"]
 
                     # Tabs for different features
-                    tab1, tab2 = st.tabs(["Game Summary", "Play-by-Play Broadcast"])
+                    tab1, tab2 = st.tabs(["Play-by-Play Broadcast", "Game Summary"])
 
-                    # Tab 1: Game Summary
+                    # Tab 1: Play-by-Play Broadcast
                     with tab1:
-                        st.write("### Game Summary")
-                        temperature_summary = st.slider(
-                            "Set the creativity level (temperature):",
-                            0.0, 1.0, 0.7, 0.1, key="temperature_summary"
-                        )
-
-                        if st.button("Refresh Game Summary", key="refresh_summary"):
-                            with st.spinner("Generating game summary..."):
-                                basic_details, game_summary = generate_game_summary(
-                                    game_data, temperature_summary
-                                )
-                                st.session_state.game_summary = (basic_details, game_summary)
-
-                        if st.session_state.game_summary:
-                            basic_details, game_summary = st.session_state.game_summary
-                            st.markdown(basic_details, unsafe_allow_html=True)
-                            st.write(game_summary)
-                        else:
-                            st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
-
-                    # Tab 2: Play-by-Play Broadcast
-                    with tab2:
                         st.write("### Customized Play-by-Play Broadcast")
 
                         # Initialize user selection variables
@@ -136,6 +114,29 @@ if st.session_state.logged_in:
                         else:
                             with broadcast_container:
                                 st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
+
+                                            # Tab 2: Game Summary
+                    with tab2:
+                        st.write("### Game Summary")
+                        temperature_summary = st.slider(
+                            "Set the creativity level (temperature):",
+                            0.0, 1.0, 0.7, 0.1, key="temperature_summary"
+                        )
+
+                        if st.button("Refresh Game Summary", key="refresh_summary"):
+                            with st.spinner("Generating game summary..."):
+                                basic_details, game_summary = generate_game_summary(
+                                    game_data, temperature_summary
+                                )
+                                st.session_state.game_summary = (basic_details, game_summary)
+
+                        if st.session_state.game_summary:
+                            basic_details, game_summary = st.session_state.game_summary
+                            st.markdown(basic_details, unsafe_allow_html=True)
+                            st.write(game_summary)
+                        else:
+                            st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
+
                 else:
                     st.error("Failed to fetch game details.")
             else:
