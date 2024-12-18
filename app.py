@@ -15,6 +15,7 @@ from utils.utils_functions import (
     login_dialog,
     sign_out,
     player_selections,
+    image_upload,
     user_prompt,
     temperature_broadcast,
     format_broadcast_update
@@ -112,6 +113,7 @@ if st.session_state.logged_in:
 
                         # Initialize user selection variables
                         selected_players = player_selections(home_team, away_team, replay_api_key)
+                        uploaded_image = image_upload()
                         input_prompt = user_prompt()
                         broadcast_temp = temperature_broadcast()
 
