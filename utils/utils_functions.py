@@ -242,4 +242,4 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
                     st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
             with st.spinner("Waiting for next play..."):
-                time.sleep(10)
+                time.sleep(5)
