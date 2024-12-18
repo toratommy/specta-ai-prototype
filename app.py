@@ -140,7 +140,7 @@ if st.session_state.logged_in:
                                                 selected_players, input_prompt
                                             )
                                             formatted_update = format_broadcast_update(
-                                                game_data, latest_play, preferences, selected_players
+                                                game_data['Score'], latest_play, preferences, selected_players
                                             )
                                             st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
                                     else:
@@ -175,7 +175,7 @@ if st.session_state.logged_in:
                                                     selected_players, input_prompt
                                                 )
                                                 formatted_update = format_broadcast_update(
-                                                    game_data, play, preferences, selected_players
+                                                    game_data['Score'], play, preferences, selected_players
                                                 )
                                                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
