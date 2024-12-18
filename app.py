@@ -1,5 +1,4 @@
 import streamlit as st
-import time
 from datetime import datetime
 from sports_data import (
     get_nfl_schedule,
@@ -111,7 +110,6 @@ if st.session_state.logged_in:
 
                         # Initialize user selection variables
                         selected_players_dict = player_selections(home_team, away_team, replay_api_key)
-                        selected_players = list(selected_players_dict.keys())
                         uploaded_image = image_upload()
                         input_prompt = user_prompt()
                         broadcast_temp = temperature_broadcast()
@@ -122,7 +120,7 @@ if st.session_state.logged_in:
                         if game_data["Score"]["IsInProgress"]:
                             if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
                                 handle_broadcast_start(
-                                    game_data, replay_api_key, broadcast_container, selected_players, input_prompt
+                                    game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
                                 )
                             else:
                                 with broadcast_container:
@@ -130,7 +128,7 @@ if st.session_state.logged_in:
 
                             while st.session_state.broadcasting:
                                 process_new_plays(
-                                    game_data, replay_api_key, broadcast_container, selected_players, input_prompt
+                                    game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
                                 )
                         else:
                             with broadcast_container:

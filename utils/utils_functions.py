@@ -3,7 +3,8 @@ from utils.auth import authenticate
 from sports_data import (
     get_players_by_team,
     get_play_by_play,
-    filter_new_plays
+    filter_new_plays,
+    get_player_box_scores
 )
 from utils.prompt_helpers import prepare_user_preferences
 from llm_interface import generate_broadcast
@@ -99,6 +100,24 @@ def image_upload():
     image_upload = st.file_uploader("Upload an image (e.g., bet slip, fantasy roster)", type=["jpg", "png"])
     return image_upload
 
+def get_involved_priority_players(play, selected_players_dict):
+    """
+    Identifies priority players involved in the current play based on the play description.
+
+    Parameters:
+        play (dict): The play information from play-by-play data.
+        selected_players_dict (dict): Dictionary of selected players with names as keys and PlayerIDs as values.
+
+    Returns:
+        list: List of involved PlayerIDs.
+    """
+    description = play.get("Description", "")
+    involved_player_ids = [
+        player_id for player_name, player_id in selected_players_dict.items()
+        if player_name.split(" (")[0] in description
+    ]
+    return involved_player_ids
+
 # Format Broadcast Updates
 def format_broadcast_update(game_data, play, preferences, selected_players):
     """
@@ -125,7 +144,7 @@ def format_broadcast_update(game_data, play, preferences, selected_players):
     return formatted_update
 
 # Start Play-by-Play Broadcast
-def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selected_players, input_prompt):
+def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
     """
     Starts the play-by-play broadcast by fetching initial data and generating the first update.
     
@@ -151,9 +170,13 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
 
             with st.spinner("Generating play-by-play broadcast..."):
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
-                preferences = prepare_user_preferences(selected_players, input_prompt)
+                preferences = prepare_user_preferences(
+                        priority_players=selected_players_dict, 
+                        box_scores=None, 
+                        tone=input_prompt
+                    )
                 formatted_update = format_broadcast_update(
-                    play_data['Score'], latest_play, preferences, selected_players
+                    play_data['Score'], latest_play, preferences, list(selected_players_dict.keys())
                 )
                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
         else:
@@ -161,21 +184,23 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
             st.session_state.broadcasting = False
 
 # Process New Plays
-def process_new_plays(game_data, replay_api_key, broadcast_container, selected_players, input_prompt):
+def process_new_plays(game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
     """
     Fetches and processes new play data, generating updates for each new play.
+    Fetches box scores for priority players involved in the play.
     
     Parameters:
         game_data (dict): Game data containing the score and other details.
         replay_api_key (str): API key for the SportsDataIO Replay API.
         broadcast_container (Streamlit container): UI container for displaying broadcasts.
-        selected_players (list): List of selected player names.
+        selected_players_dict (dict): Dictionary of selected players with names as keys and PlayerIDs as values.
         input_prompt (str): User-defined prompt for customizing broadcast tone.
 
     Returns:
         None
     """
-    play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
+    score_id = game_data["Score"]["ScoreID"]
+    play_data = get_play_by_play(score_id, replay_api_key)
 
     with broadcast_container:
         if not play_data:
@@ -191,9 +216,22 @@ def process_new_plays(game_data, replay_api_key, broadcast_container, selected_p
 
             for play in new_plays:
                 with st.spinner("Generating broadcast update..."):
-                    preferences = prepare_user_preferences(selected_players, input_prompt)
+                    involved_player_ids = get_involved_priority_players(play, selected_players_dict)
+
+                    # Fetch box scores for involved players
+                    box_scores = {}
+                    if involved_player_ids:
+                        box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
+
+                    # Enhance user preferences
+                    preferences = prepare_user_preferences(
+                        priority_players=selected_players_dict, 
+                        box_scores=box_scores, 
+                        tone=input_prompt
+                    )
+
                     formatted_update = format_broadcast_update(
-                        play_data['Score'], play, preferences, selected_players
+                        play_data['Score'], play, preferences, list(selected_players_dict.keys())
                     )
                     st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
