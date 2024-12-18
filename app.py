@@ -113,9 +113,9 @@ if st.session_state.logged_in:
                                 )
                         else:
                             with broadcast_container:
-                                st.error("The game is not in progress. Play-by-play broadcast cannot be started.")
+                                st.error("The game is not in progress. Play-by-play broadcast cannot be started. Please wait for the game to start or select another game.")
 
-                                            # Tab 2: Game Summary
+                    # Tab 2: Game Summary
                     with tab2:
                         st.session_state.broadcasting = False  # Stop broadcasting when switching tabs
                         st.write("### Game Summary")
@@ -124,20 +124,22 @@ if st.session_state.logged_in:
                             0.0, 1.0, 0.7, 0.1, key="temperature_summary"
                         )
 
-                        if st.button("Refresh Game Summary", key="refresh_summary"):
-                            with st.spinner("Generating game summary..."):
-                                basic_details, game_summary = generate_game_summary(
-                                    game_data, temperature_summary
-                                )
-                                st.session_state.game_summary = (basic_details, game_summary)
+                        if game_data["Score"]["IsInProgress"] or game_data["Score"]["IsOver"]:
+                            if st.button("Refresh Game Summary", key="refresh_summary"):
+                                with st.spinner("Generating game summary..."):
+                                    basic_details, game_summary = generate_game_summary(
+                                        game_data, temperature_summary
+                                    )
+                                    st.session_state.game_summary = (basic_details, game_summary)
 
-                        if st.session_state.game_summary:
-                            basic_details, game_summary = st.session_state.game_summary
-                            st.markdown(basic_details, unsafe_allow_html=True)
-                            st.write(game_summary)
+                            if st.session_state.game_summary:
+                                basic_details, game_summary = st.session_state.game_summary
+                                st.markdown(basic_details, unsafe_allow_html=True)
+                                st.write(game_summary)
+                            else:
+                                st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
                         else:
-                            st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
-
+                            st.error("Selected game has not yet started. Please wait for the game to start or select another game.")
                 else:
                     st.error("Failed to fetch game details.")
             else:
