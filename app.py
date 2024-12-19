@@ -84,23 +84,10 @@ if st.session_state.logged_in:
 
                     # Tabs for different features
                     tab1, tab2 = st.tabs(["Play-by-Play Broadcast", "Game Summary"])
-                    
-                    # Track the active tab
-                    if "active_tab" not in st.session_state:
-                        st.session_state.active_tab = "Play-by-Play Broadcast"
-
-                    # Detect tab change
-                    if tab1:
-                        if st.session_state.active_tab != "Play-by-Play Broadcast":
-                            st.session_state.active_tab = "Play-by-Play Broadcast"
-                    elif tab2:
-                        if st.session_state.active_tab != "Game Summary":
-                            st.session_state.active_tab = "Game Summary"
-                            st.session_state.broadcasting = False  # Stop broadcasting when switching to Game Summary
-
 
                     # Tab 1: Play-by-Play Broadcast
                     with tab1:
+                        st.session_state.broadcasting = False  # Stop broadcasting if switching tabs
                         st.write("### Customized Play-by-Play Broadcast")
 
                         # Initialize user selection variables
@@ -121,7 +108,7 @@ if st.session_state.logged_in:
                                 with broadcast_container:
                                     st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
 
-                            while st.session_state.broadcasting:
+                            while st.session_state.broadcasting == True:
                                 process_new_plays(
                                     game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
                                 )
@@ -131,6 +118,7 @@ if st.session_state.logged_in:
 
                     # Tab 2: Game Summary
                     with tab2:
+                        st.session_state.broadcasting = False  # Stop broadcasting when switching tabs
                         st.write("### Game Summary")
                         temperature_summary = st.slider(
                             "Set the creativity level (temperature):",
