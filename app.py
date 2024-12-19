@@ -155,7 +155,7 @@ if st.session_state.logged_in:
                             else:
                                 st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
                         else:
-                            st.error("Selected game has not yet started. Please wait for the game to start or select another game.")
+                            st.error(f"Selected game has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game to start or select another game.")
                 else:
                     st.error(f"Failed to fetch game details. The selected game is not yet in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game to start, enter a different replay API key, or select another game.")
             else:
