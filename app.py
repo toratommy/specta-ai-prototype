@@ -111,7 +111,8 @@ if st.session_state.logged_in:
                             if st.session_state.broadcasting:
                                 if st.button("Stop Play-by-Play Broadcast", key="stop_broadcast"):
                                     st.session_state.broadcasting = False
-                                    st.info("Broadcast has been stopped.")
+                                    with broadcast_container:
+                                        st.info("Broadcast has been stopped.")
                             
                             while st.session_state.broadcasting == True:
                                 process_new_plays(
@@ -148,7 +149,7 @@ if st.session_state.logged_in:
                 else:
                     st.error("Failed to fetch game details.")
             else:
-                st.warning("Please select a game to proceed.")
+                st.warning("Please select a game using the left pane to proceed.")
         else:
             st.warning("No games found for the selected date.")
     else:
