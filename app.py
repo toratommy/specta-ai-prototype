@@ -87,7 +87,6 @@ if st.session_state.logged_in:
 
                     # Tab 1: Play-by-Play Broadcast
                     with tab1:
-                        st.session_state.broadcasting = False  # Stop broadcasting if switching tabs
                         st.write("### Customized Play-by-Play Broadcast")
 
                         # Initialize user selection variables
@@ -124,7 +123,6 @@ if st.session_state.logged_in:
 
                     # Tab 2: Game Summary
                     with tab2:
-                        st.session_state.broadcasting = False  # Stop broadcasting when switching tabs
                         st.write("### Game Summary")
                         temperature_summary = st.slider(
                             "Set the creativity level (temperature):",
