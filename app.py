@@ -94,41 +94,39 @@ if st.session_state.logged_in:
                         games_in_progress = check_games_in_progress(replay_api_key)
                         current_replay_time = get_current_replay_time(replay_api_key) 
 
-                        if games_in_progress == 'true':
-                            # Initialize user selection variables
-                            selected_players_dict = player_selections(home_team, away_team, replay_api_key)
-                            uploaded_image = image_upload()
-                            input_prompt = user_prompt()
-                            broadcast_temp = temperature_broadcast()
+                        # Initialize user selection variables
+                        selected_players_dict = player_selections(home_team, away_team, replay_api_key)
+                        uploaded_image = image_upload()
+                        input_prompt = user_prompt()
+                        broadcast_temp = temperature_broadcast()
 
-                            # Scrollable container for broadcasts
-                            broadcast_container = st.container(border=True, height=450)
+                        # Scrollable container for broadcasts
+                        broadcast_container = st.container(border=True, height=450)
 
-                            if game_data["Score"]["IsInProgress"]:
-                                if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
-                                    st.session_state.broadcasting = True
-                                    handle_broadcast_start(
-                                        game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
-                                    )
-                                else:
-                                    with broadcast_container:
-                                        st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
-
-                                if st.session_state.broadcasting:
-                                    if st.button("Stop Play-by-Play Broadcast", key="stop_broadcast"):
-                                        st.session_state.broadcasting = False
-                                        with broadcast_container:
-                                            st.info("Broadcast has been stopped.")
-                                
-                                while st.session_state.broadcasting == True:
-                                    process_new_plays(
-                                        game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
-                                    )
+                        if game_data["Score"]["IsInProgress"]:
+                            if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
+                                st.session_state.broadcasting = True
+                                handle_broadcast_start(
+                                    game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
+                                )
                             else:
                                 with broadcast_container:
-                                    st.error("Playing has not yet started. Please wait for the game action to start or select another game.")
+                                    st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
+
+                            if st.session_state.broadcasting:
+                                if st.button("Stop Play-by-Play Broadcast", key="stop_broadcast"):
+                                    st.session_state.broadcasting = False
+                                    with broadcast_container:
+                                        st.info("Broadcast has been stopped.")
+                            
+                            while st.session_state.broadcasting == True:
+                                process_new_plays(
+                                    game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
+                                )
                         else:
-                            st.error(f'No games are in progress. The current replay time is {current_replay_time}. Please wait for games to begin or try another replay API key that has games currently in progress.')
+                            with broadcast_container:
+                                st.error("The game is not in progress. Play-by-play broadcast cannot be started. Please wait for the game to start or select another game.")
+
                     # Tab 2: Game Summary
                     with tab2:
                         st.write("### Game Summary")
