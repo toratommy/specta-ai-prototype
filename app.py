@@ -120,6 +120,7 @@ if st.session_state.logged_in:
                     # Tab 2: Game Summary
                     with tab2:
                         st.session_state.broadcasting = False  # Stop broadcasting when switching tabs
+                        st.stop()
                         st.write("### Game Summary")
                         temperature_summary = st.slider(
                             "Set the creativity level (temperature):",
