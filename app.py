@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+import pytz
 from sports_data import (
     extract_season_code,
     get_nfl_schedule,
@@ -56,10 +57,15 @@ if st.session_state.logged_in:
 
     season_code = extract_season_code(replay_api_key)
     nfl_schedule = get_nfl_schedule(replay_api_key, season_code)
+    current_replay_time = get_current_replay_time(replay_api_key)
+    current_replay_time_est = current_replay_time.astimezone(pytz.timezone("US/Eastern")) 
+   
+    # Tabs for different features
+    tab1, tab2 = st.tabs(["Play-by-Play Broadcast", "Game Summary"])
 
     if nfl_schedule:
         # Fetch current replay time for default date
-        default_date = get_current_replay_time(replay_api_key) or datetime.now()
+        default_date = current_replay_time or datetime.now()
         selected_date = st.sidebar.date_input("Select Date:", value=default_date.date())
 
         games_on_date = [
@@ -77,14 +83,12 @@ if st.session_state.logged_in:
             )
 
             if selected_score_id != "Select a Game":
+                
                 game_data = get_game_details(selected_score_id, replay_api_key)
 
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
-
-                    # Tabs for different features
-                    tab1, tab2 = st.tabs(["Play-by-Play Broadcast", "Game Summary"])
 
                     # Tab 1: Play-by-Play Broadcast
                     with tab1:
@@ -92,41 +96,42 @@ if st.session_state.logged_in:
 
                         # Check if games are in progress
                         games_in_progress = check_games_in_progress(replay_api_key)
-                        current_replay_time = get_current_replay_time(replay_api_key) 
 
-                        # Initialize user selection variables
-                        selected_players_dict = player_selections(home_team, away_team, replay_api_key)
-                        uploaded_image = image_upload()
-                        input_prompt = user_prompt()
-                        broadcast_temp = temperature_broadcast()
+                        if games_in_progress:
+                            # Initialize user selection variables
+                            selected_players_dict = player_selections(home_team, away_team, replay_api_key)
+                            uploaded_image = image_upload()
+                            input_prompt = user_prompt()
+                            broadcast_temp = temperature_broadcast()
 
-                        # Scrollable container for broadcasts
-                        broadcast_container = st.container(border=True, height=450)
+                            # Scrollable container for broadcasts
+                            broadcast_container = st.container(border=True, height=450)
 
-                        if game_data["Score"]["IsInProgress"]:
-                            if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
-                                st.session_state.broadcasting = True
-                                handle_broadcast_start(
-                                    game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
-                                )
+                            if game_data["Score"]["IsInProgress"]:
+                                if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
+                                    st.session_state.broadcasting = True
+                                    handle_broadcast_start(
+                                        game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
+                                    )
+                                else:
+                                    with broadcast_container:
+                                        st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
+
+                                if st.session_state.broadcasting:
+                                    if st.button("Stop Play-by-Play Broadcast", key="stop_broadcast"):
+                                        st.session_state.broadcasting = False
+                                        with broadcast_container:
+                                            st.info("Broadcast has been stopped.")
+                                
+                                while st.session_state.broadcasting == True:
+                                    process_new_plays(
+                                        game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
+                                    )
                             else:
                                 with broadcast_container:
-                                    st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
-
-                            if st.session_state.broadcasting:
-                                if st.button("Stop Play-by-Play Broadcast", key="stop_broadcast"):
-                                    st.session_state.broadcasting = False
-                                    with broadcast_container:
-                                        st.info("Broadcast has been stopped.")
-                            
-                            while st.session_state.broadcasting == True:
-                                process_new_plays(
-                                    game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
-                                )
+                                    st.error(f"Playing has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game action to start or select another game.")
                         else:
-                            with broadcast_container:
-                                st.error("The game is not in progress. Play-by-play broadcast cannot be started. Please wait for the game to start or select another game.")
-
+                            st.error(f'No games are in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for games to begin or try another replay API key that has games currently in progress.')
                     # Tab 2: Game Summary
                     with tab2:
                         st.write("### Game Summary")
@@ -152,7 +157,7 @@ if st.session_state.logged_in:
                         else:
                             st.error("Selected game has not yet started. Please wait for the game to start or select another game.")
                 else:
-                    st.error("Failed to fetch game details.")
+                    st.error(f"Failed to fetch game details. The selected game is not yet in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game to start, enter a different replay API key, or select another game.")
             else:
                 st.warning("Please select a game using the left pane to proceed.")
         else:
