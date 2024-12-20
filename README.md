@@ -130,7 +130,7 @@ Replace the placeholders in the `secrets.toml` file with your own API keys.
 
 ## **License**
 
-This project is licensed under the [CC BY-NC-ND 4.0](LICENSE).
+This project is licensed under the [CC BY-NC-ND 4.0 License](LICENSE.md).
 
 ---
 
