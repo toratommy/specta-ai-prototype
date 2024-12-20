@@ -1,13 +1,15 @@
 import streamlit as st
 from utils.auth import authenticate
 from sports_data import (
-    get_players_by_team,
     get_play_by_play,
     filter_new_plays,
     get_player_box_scores,
     get_player_season_stats
 )
-from utils.prompt_helpers import prepare_user_preferences
+from utils.prompt_helpers import (
+    prepare_user_preferences,
+    prepare_player_stats
+)
 from llm_interface import generate_broadcast
 import time
 
@@ -46,21 +48,18 @@ def login_dialog():
 
 # Player selection fragment
 @st.fragment 
-def player_selections(home_team, away_team, replay_api_key):
+def player_selections(home_players, away_players):
     """
     Allows users to select players of interest from both teams.
 
     Parameters:
-        home_team (str): Home team name.
-        away_team (str): Away team name.
+        home_players (list): Home team players.
+        away_players (list): Away team players.
         replay_api_key (str): API key for the SportsDataIO Replay API.
 
     Returns:
         dict: Dictionary of selected players with names as keys and IDs as values.
     """
-    # Fetch players from both teams
-    home_players = get_players_by_team(home_team, replay_api_key)
-    away_players = get_players_by_team(away_team, replay_api_key)
 
     # Combine and format players for selection
     all_players = {
@@ -101,26 +100,26 @@ def image_upload():
     image_upload = st.file_uploader("Upload an image (e.g., bet slip, fantasy roster)", type=["jpg", "png"])
     return image_upload
 
-def get_involved_priority_players(play, selected_players_dict):
+def get_involved_players(play, players_dict):
     """
-    Identifies priority players involved in the current play based on the play description.
+    Identifies players involved in the current play based on the play description.
 
     Parameters:
         play (dict): The play information from play-by-play data.
-        selected_players_dict (dict): Dictionary of selected players with names as keys and PlayerIDs as values.
+        players_dict (dict): Dictionary of players with names as keys and PlayerIDs as values.
 
     Returns:
         list: List of involved PlayerIDs.
     """
     description = play.get("Description", "")
     involved_player_ids = [
-        player_id for player_name, player_id in selected_players_dict.items()
+        player_id for player_name, player_id in players_dict.items()
         if player_name.split(" (")[0] in description
     ]
     return involved_player_ids
 
 # Format Broadcast Updates
-def format_broadcast_update(game_data, play, preferences, selected_players):
+def write_broadcast_update(game_data, play, preferences, selected_players, player_stats):
     """
     Format broadcast updates with a star icon for priority players.
     Highlights player names by removing team and position details.
@@ -130,6 +129,7 @@ def format_broadcast_update(game_data, play, preferences, selected_players):
         game_info=game_data,
         play_info=play,
         preferences=preferences,
+        player_stats=player_stats
     )
 
     # Extract player names without team/position details
@@ -173,12 +173,10 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
                 preferences = prepare_user_preferences(
                         priority_players=selected_players_dict, 
-                        box_scores=None,
-                        season_stats=None, 
                         tone=input_prompt
                     )
-                formatted_update = format_broadcast_update(
-                    play_data['Score'], latest_play, preferences, list(selected_players_dict.keys())
+                formatted_update = write_broadcast_update(
+                    play_data['Score'], latest_play, preferences, list(selected_players_dict.keys()), None
                 )
                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
         else:
@@ -186,7 +184,7 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
             st.session_state.broadcasting = False
 
 # Process New Plays
-def process_new_plays(game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt):
+def process_new_plays(game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, all_players_dict, input_prompt):
     """
     Fetches and processes new play data, generating updates for each new play.
     Fetches box scores for priority players involved in the play.
@@ -218,26 +216,28 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
 
             for play in new_plays:
                 with st.spinner("Generating broadcast update..."):
-                    involved_player_ids = get_involved_priority_players(play, selected_players_dict)
+                    involved_player_ids = get_involved_players(play, all_players_dict)
 
-                    # Fetch box scores for involved players
+                    # Fetch box scores and season stats for involved players
                     box_scores = {}
                     season_stats = {}
                     if involved_player_ids:
                         box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
                         season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
-                        # st.write(season_stats)
 
-                    # Enhance user preferences
+                    # Prepare data for the broadcast LLM
                     preferences = prepare_user_preferences(
                         priority_players=selected_players_dict, 
-                        box_scores=box_scores, 
-                        season_stats=season_stats,
                         tone=input_prompt
                     )
 
-                    formatted_update = format_broadcast_update(
-                        play_data['Score'], play, preferences, list(selected_players_dict.keys())
+                    player_stats = prepare_player_stats(
+                        box_scores=box_scores,
+                        season_stats=season_stats
+                    )
+
+                    formatted_update = write_broadcast_update(
+                        play_data['Score'], play, preferences, list(selected_players_dict.keys()), player_stats
                     )
                     st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 

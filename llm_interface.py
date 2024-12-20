@@ -1,7 +1,9 @@
 import os
+import io
 from openai import OpenAI
 import streamlit as st
 import json
+from PIL import Image
 
 # Helper function to load prompt templates
 def load_prompt_template(template_name):
@@ -118,7 +120,7 @@ def generate_game_summary(game_data, temperature=0.7):
         st.error(f"Failed to generate game summary: {e}")
         return box_score_json, "Error generating game summary."
 
-def generate_broadcast(game_info, play_info, preferences, temperature=0.7):
+def generate_broadcast(game_info, play_info, preferences, player_stats, temperature=0.7):
     """
     Generates a customized play-by-play broadcast using OpenAI's API.
 
@@ -135,7 +137,7 @@ def generate_broadcast(game_info, play_info, preferences, temperature=0.7):
 
     # Load the broadcast prompt template
     prompt_template = load_prompt_template("broadcast_prompt.txt")
-    prompt = prompt_template.format(game_info=game_info, play_info=play_info, preferences=preferences)
+    prompt = prompt_template.format(game_info=game_info, play_info=play_info, preferences=preferences, player_stats=player_stats)
 
     # Call the OpenAI API
     try:
@@ -151,3 +153,56 @@ def generate_broadcast(game_info, play_info, preferences, temperature=0.7):
     except Exception as e:
         st.error(f"Failed to generate play-by-play broadcast: {e}")
         return "Error generating broadcast."
+    
+def infer_image_contents(uploaded_image, all_players):
+    """
+    Infers player names and image type (bet slip, fantasy roster, or other) from the uploaded image.
+
+    Parameters:
+        uploaded_image: Uploaded file object from Streamlit.
+        all_players (list): List of all players from both teams.
+
+    Returns:
+        dict: Dictionary with inferred player names and image type.
+    """
+    if not uploaded_image:
+        return {"players": [], "image_type": "No image uploaded"}
+
+    # Load the image
+    image = Image.open(uploaded_image)
+    buffered = io.BytesIO()
+    image.save(buffered, format="PNG")
+    img_bytes = buffered.getvalue()
+
+    # Prepare LLM prompt
+    players_text = ", ".join(all_players)
+
+    prompt = f"""
+    You are an AI assistant helping with sports image analysis.
+    Given the following image bytes (encoded in base64), determine:
+    1. Which player names from this list are present: {players_text}.
+    2. Classify the image as one of the following types: 'bet slip', 'fantasy roster', or 'other'.
+
+    Use OCR to extract text from the image and infer the information.
+    """
+
+    try:
+        client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant for analyzing sports images."},
+                {"role": "user", "content": prompt},
+                {"role": "user", "content": f"Image bytes (base64): {img_bytes.hex()}"}
+            ],
+            temperature=0.5,
+        )
+
+        # Parse the response
+        analysis_result = response.choices[0].message.content.strip()
+        st.info("Image analysis completed.")
+        return eval(analysis_result)  # Ensure the result is properly formatted as a dictionary
+
+    except Exception as e:
+        st.error(f"Failed to analyze image contents: {e}")
+        return {"players": [], "image_type": "Error processing image"}

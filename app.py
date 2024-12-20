@@ -4,9 +4,13 @@ from sports_data import (
     extract_season_code,
     get_nfl_schedule,
     get_game_details,
-    get_current_replay_time
+    get_current_replay_time,
+    get_players_by_team
 )
-from llm_interface import generate_game_summary
+from llm_interface import (
+    generate_game_summary, 
+    infer_image_contents
+)
 from utils.utils_functions import (
     initialize_session_state,
     login_dialog,
@@ -81,6 +85,9 @@ if st.session_state.logged_in:
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
+                    home_players = get_players_by_team(home_team, replay_api_key)
+                    away_players = get_players_by_team(away_team, replay_api_key)
+                    all_players_dict = {p['Name'] : p['PlayerID'] for p in home_players + away_players}
 
                     # Tabs for different features
                     tab1, tab2 = st.tabs(["Play-by-Play Broadcast", "Game Summary"])
@@ -90,10 +97,13 @@ if st.session_state.logged_in:
                         st.write("### Customized Play-by-Play Broadcast")
 
                         # Initialize user selection variables
-                        selected_players_dict = player_selections(home_team, away_team, replay_api_key)
+                        selected_players_dict = player_selections(home_players, away_players)
                         uploaded_image = image_upload()
                         input_prompt = user_prompt()
                         broadcast_temp = temperature_broadcast()
+
+                        # Process uploaded image with LLM
+                        #st.write(infer_image_contents(uploaded_image, list(all_players_dict.keys())))
 
                         # Scrollable container for broadcasts
                         broadcast_container = st.container(border=True, height=450)
@@ -116,7 +126,7 @@ if st.session_state.logged_in:
                             
                             while st.session_state.broadcasting == True:
                                 process_new_plays(
-                                    game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, input_prompt
+                                    game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, all_players_dict, input_prompt
                                 )
                         else:
                             with broadcast_container:
