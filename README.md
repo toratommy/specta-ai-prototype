@@ -129,8 +129,9 @@ Replace the placeholders in the `secrets.toml` file with your own API keys.
 ---
 
 ## **License**
+Shield: [![CC BY-NC-ND 4.0][cc-by-nc-nd-shield]][cc-by-nc-nd]
 
-This project is licensed under the [CC BY-NC-ND 4.0 License](LICENSE.md).
+This project is licensed under the [Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International License](LICENSE.md).
 
 ---
 
