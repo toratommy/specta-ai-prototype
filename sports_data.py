@@ -146,6 +146,19 @@ def get_current_replay_time(replay_api_key):
         st.error(f"Error fetching current replay time: {e}")
         return None
 
+def check_games_in_progress(replay_api_key):
+    """
+    Checks if any NFL games are currently in progress.
+    Returns True if games are in progress, otherwise False.
+    """
+    url = f"{BASE_URL}scores/json/areanygamesinprogress?key={replay_api_key}"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()  # True if games are in progress, False otherwise
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to check games in progress: {e}")
+        return None
 
 def get_player_box_scores(score_id, player_ids, replay_api_key):
     """
