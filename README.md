@@ -28,6 +28,7 @@ project_directory/
 │   ├── auth.py              # Authentication functions
 │   ├── prompt_helpers.py    # Helper functions for preparing prompts
 │   ├── sports_data.py       # Functions for interacting with the sports data API
+│   ├── utils_functions.py   # Utility functions for the main app.py file
 ├── llm_interface.py         # Functions for interacting with the LLM
 ├── prompts/
 │   ├── game_summary_prompt.txt  # Template for game summary prompts
