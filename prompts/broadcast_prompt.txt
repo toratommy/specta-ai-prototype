@@ -21,13 +21,18 @@ Use this context as a header (the update should always start with these 4 bullet
 
 Then, generate a customized play-by-play broadcast focused on what happened in the play (inferred from the provided "Play Information") and any notable player stats (inferred from the provided "Player Stats"). 
 Each broadcast update should include what happened during the play (2-4 sentences) as well as key highlights from the box scores/season stats for each of the players involved in the play (2 sentences max for each player).
-For each play, decide whether to emphasive the involved player's box scores or season stats based on whichever are more notable/interesting for that play. 
-Be sure to always mention key milestons such as 100 yards in the game, 10th touchdown of the season, etc. 
-For any scoring play, emphasize how many touchdowns that player has had this game (using box_scores) and this season (using season_stats)
+For each play, decide whether to emphasize the involved player's box scores or season stats based on whichever are more notable/interesting for that play. 
+Be sure to always mention key milestones such as 100 yards in the game, 10th touchdown of the season, etc. 
+For any scoring play, emphasize how many touchdowns that player has had this game (using box_scores) and this season (using season_stats).
 
-If no priority player is specified, limit the update to 4 sentences maximum, adjusting for the specified tone/storyline in the user preferences. DO NOT talk about a priority player (from the user's prefernces) if they were not involved in the play.
+If no priority player is specified, limit the update to 4 sentences maximum, adjusting for the specified tone/storyline in the user preferences. 
 If the play involves a priority player from the user's preferences, provide a more detailed update (6-8 sentences max).
+
+Above all else, please prioritize the user's preferences (in particular, the desired tone/storyline). They should always take precedence over the instructions above.
+
+Finally, please try to keep sequential updates from being redundant. Try to continue to build on storylines without repeating similar insights over and over.
 
 Other Notes/Rules:
 - For the season type codes (relevant to player season_stats), SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing season stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season")
 - Only mention time outs if you are certain a time out has been called (e.g., if it is explicitly stated in the play description). Do not make any assumptions.
+- DO NOT talk about a priority player (from the user's preferences) if they were not involved in the play.
