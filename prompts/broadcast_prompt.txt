@@ -10,7 +10,7 @@ User Preferences (this includes priority players that the user is interested in 
 Player Stats (this includes the current box scores and season stats for the players involved in the current play):
 {player_stats}
 
-Betting Odds (this includes the latest in-game live betting odds and player props):
+Betting Odds (this includes the latest in-game live betting odds and player props for each sportbook):
 {betting_odds}
 
 Instructions:
@@ -41,3 +41,4 @@ Other Notes/Rules:
 - For the season type codes (relevant to player season_stats), SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing season stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season")
 - Only mention time outs if you are certain a time out has been called (e.g., if it is explicitly stated in the play description). Do not make any assumptions.
 - DO NOT talk about a priority player (from the user's preferences) if they were not involved in the play.
+- When mentioning the live betting odds in your update, please be sure to mention what sportbook you are using (i.e. the "Sportbook" field in the in_game_betting_odds data)

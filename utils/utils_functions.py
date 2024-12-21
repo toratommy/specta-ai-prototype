@@ -244,7 +244,7 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
 
                     # Fetch latest in-game betting odds
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
-                    #st.write(latest_betting_odds)
+
                     # Prepare data for the broadcast LLM
                     preferences = prepare_user_preferences(
                         priority_players=selected_players_dict, 
