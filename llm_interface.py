@@ -120,7 +120,7 @@ def generate_game_summary(game_data, temperature=0.7):
         st.error(f"Failed to generate game summary: {e}")
         return box_score_json, "Error generating game summary."
 
-def generate_broadcast(game_info, play_info, preferences, player_stats, temperature=0.7):
+def generate_broadcast(game_info, play_info, preferences, player_stats, betting_odds, temperature):
     """
     Generates a customized play-by-play broadcast using OpenAI's API.
 
@@ -137,7 +137,12 @@ def generate_broadcast(game_info, play_info, preferences, player_stats, temperat
 
     # Load the broadcast prompt template
     prompt_template = load_prompt_template("broadcast_prompt.txt")
-    prompt = prompt_template.format(game_info=game_info, play_info=play_info, preferences=preferences, player_stats=player_stats)
+    prompt = prompt_template.format(game_info=game_info, 
+                                    play_info=play_info, 
+                                    preferences=preferences, 
+                                    player_stats=player_stats, 
+                                    betting_odds=betting_odds
+                                    )
 
     # Call the OpenAI API
     try:

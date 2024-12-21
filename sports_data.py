@@ -229,4 +229,34 @@ def get_player_season_stats(player_ids, replay_api_key, season_code):
         st.error(f"Failed to fetch player season stats: {e}")
         return {}
 
+def get_latest_in_game_odds(score_id, replay_api_key):
+    """
+    Fetches the most recent in-game betting odds for a given ScoreId from the SportsDataIO Replay API.
+
+    Parameters:
+        score_id (int): The ScoreId of the game.
+        replay_api_key (str): API key for authenticating with the SportsDataIO Replay API.
+
+    Returns:
+        dict: The latest in-game odds, or None if the request fails.
+    """
+    url = f"{BASE_URL}odds/json/livegameoddslinemovement/{score_id}"
+    params = {"key": replay_api_key}
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        odds_data = response.json()
+
+        # Extract LiveOdds and find the most recent odds
+        if odds_data and "LiveOdds" in odds_data[0]:
+            live_odds = odds_data[0]["LiveOdds"]
+            most_recent_odds = max(live_odds, key=lambda odd: odd["Updated"])
+            return most_recent_odds
+
+        return None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch in-game betting odds for ScoreId {score_id}: {e}")
+        return None
+
+
 
