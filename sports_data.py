@@ -242,7 +242,7 @@ def get_latest_in_game_odds(score_id, replay_api_key):
         list: A list of dictionaries containing the latest odds for each sportsbook,
               or None if no odds are available.
     """
-    url = f"https://replay.sportsdata.io/api/v3/nfl/odds/json/livegameoddslinemovement/{score_id}"
+    url = f"{BASE_URL}odds/json/livegameoddslinemovement/{score_id}"
     params = {"key": replay_api_key}
     try:
         response = requests.get(url, params=params)
@@ -270,6 +270,36 @@ def get_latest_in_game_odds(score_id, replay_api_key):
     except requests.exceptions.RequestException as e:
         st.error(f"Failed to fetch in-game betting odds for ScoreId {score_id}: {e}")
         return None
+
+def get_player_props(score_id, player_ids, replay_api_key):
+    """
+    Fetches player props for a given score ID and filters the response based on the list of player IDs.
+
+    Parameters:
+        score_id (int): The score ID of the game.
+        player_ids (list): List of player IDs to filter the response.
+        replay_api_key (str): API key for SportsData.io.
+
+    Returns:
+        list: Filtered list of player props for the specified players.
+    """
+    url = f"{BASE_URL}odds/json/bettingplayerpropsbyscoreid/{score_id}"
+    params = {"key": replay_api_key}
+    
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        player_props = response.json()
+        
+        # Filter props based on player IDs
+        filtered_props = [
+            prop for prop in player_props if prop["PlayerID"] in player_ids
+        ]
+        return filtered_props
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to fetch player props for ScoreID {score_id}: {e}")
+        return []
+
 
 
 

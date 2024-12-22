@@ -6,7 +6,8 @@ from sports_data import (
     get_player_box_scores,
     get_player_season_stats,
     get_latest_in_game_odds,
-    get_current_replay_time
+    get_current_replay_time,
+    get_player_props
 )
 from utils.prompt_helpers import (
     prepare_user_preferences,
@@ -235,12 +236,14 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
                 with st.spinner("Generating broadcast update..."):
                     involved_player_ids = get_involved_players(play, all_players_dict)
 
-                    # Fetch box scores and season stats for involved players
+                    # Fetch box scores, season stats, and player props for involved players
                     box_scores = {}
                     season_stats = {}
+                    player_props = {}
                     if involved_player_ids:
                         box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
                         season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
+                        player_props = get_player_props(score_id, involved_player_ids, replay_api_key)
 
                     # Fetch latest in-game betting odds
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
@@ -258,7 +261,7 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
 
                     betting_odds = prepare_betting_odds(
                         in_game_betting_odds=latest_betting_odds,
-                        player_props=None
+                        player_props=player_props
                     )
 
                     formatted_update = write_broadcast_update(

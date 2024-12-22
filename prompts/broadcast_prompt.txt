@@ -26,8 +26,8 @@ Then, generate a customized play-by-play broadcast focused on what happened in t
 Each broadcast update should include what happened during the play (2-4 sentences) as well as key highlights from the box scores/season stats for each of the players involved in the play (2 sentences max for each player).
 For each play, decide whether to emphasize the involved player's box scores or season stats based on whichever are more notable/interesting for that play. 
 Be sure to always mention key milestones such as 100 yards in the game, 10th touchdown of the season, etc. 
-For any scoring play, emphasize how many touchdowns that player has had this game (using box_scores) and this season (using season_stats).
-For any big plays, mention how it has impacted the live in game betting odds (using the betting odds data).
+For any scoring play, emphasize how many touchdowns that player has had this game (using box_scores) and this season (using season_stats), and their player props (if available).
+For any big plays, mention how it has impacted the live in game betting odds or the player props (using the betting odds data).
 
 If no priority player is specified, limit the update to 4 sentences maximum, adjusting for the specified tone/storyline in the user preferences. 
 If the play involves a priority player from the user's preferences, provide a more detailed update (6-8 sentences max).
