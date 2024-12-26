@@ -1,17 +1,22 @@
-Game Information (this includes the latest details of the game such as score, time remaining, etc.):
-{game_info}
+User Preferences:
+- Description: This includes priority players that the user is interested in and the desired tone/storyline for their broadcast.
+- Data: {preferences}
 
-Play Information (this includes data on what happened during the current play):
-{play_info}
+Game Information:
+- Description: This includes the latest details of the game such as score, time remaining, possession, weather, etc.
+- Data: {game_info}
 
-User Preferences (this includes priority players that the user is interested in and the desired tone/storyline of the broadcast):
-{preferences}
+Play Information:
+- Description: This includes data on what happened during the current play (e.g., players involved, play description, yards gained, etc.)
+- Data: {play_info}
 
-Player Stats (this includes the current box scores and season stats for the players involved in the current play):
-{player_stats}
+Player Stats:
+- Description: This includes the current box scores and latest season stats for the players involved in the play. The box_scores data also includes players' fantasy stats.
+- Data: {player_stats}
 
-Betting Odds (this includes the latest in-game live betting odds and player props for each sportbook):
-{betting_odds}
+Betting Odds:
+- This includes the latest in-game live betting odds and player props (for each sportbook).
+- Data: {betting_odds}
 
 Instructions:
 From the provided game information, extract the relevant game context, including:
