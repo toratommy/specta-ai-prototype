@@ -11,11 +11,14 @@ from sports_data import (
 )
 from llm_interface import (
     generate_game_summary, 
+    load_prompt_template,
     infer_image_contents
 )
 from utils.utils_functions import (
     initialize_session_state,
     login_dialog,
+    sandbox_toggle,
+    prompt_container,
     sign_out,
     player_selections,
     image_upload,
@@ -62,7 +65,7 @@ if st.session_state.logged_in:
     season_code = extract_season_code(replay_api_key)
     nfl_schedule = get_nfl_schedule(replay_api_key, season_code)
     current_replay_time = get_current_replay_time(replay_api_key)
-    current_replay_time_est = current_replay_time.astimezone(pytz.timezone("US/Eastern")) 
+    current_replay_time_est = current_replay_time.astimezone(pytz.timezone("US/Eastern"))
 
     if nfl_schedule:
         # Fetch current replay time for default date
@@ -109,12 +112,21 @@ if st.session_state.logged_in:
                             uploaded_image = image_upload()
                             input_prompt = user_prompt()
                             broadcast_temp = temperature_broadcast()
+                            
+                            # Sandbox for editing prompt templates
+                            
+                            sandbox_toggle()
+                            
+
 
                             # Process uploaded image with LLM
                             #st.write(infer_image_contents(uploaded_image, list(all_players_dict.keys())))
-
+                            
                             # Scrollable container for broadcasts
-                            broadcast_container = st.container(border=True, height=450)
+                            st.divider()
+                            broadcast_container = st.container(border=True, height=550)
+                            with broadcast_container:
+                                st.header("Play-by-Play Broadcast")
 
                             if game_data["Score"]["IsInProgress"]:
                                 if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
@@ -124,7 +136,7 @@ if st.session_state.logged_in:
                                     )
                                 else:
                                     with broadcast_container:
-                                        st.warning("Make Selections and Select 'Start Play-by-Play Broadcast'.")
+                                        st.info("Make selections and press 'Start Play-by-Play Broadcast'.")
 
                                 if st.session_state.broadcasting:
                                     if st.button("Stop Play-by-Play Broadcast", key="stop_broadcast"):

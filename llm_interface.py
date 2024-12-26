@@ -135,8 +135,8 @@ def generate_broadcast(game_info, play_info, preferences, player_stats, betting_
     """
     client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
 
-    # Load the broadcast prompt template
-    prompt_template = load_prompt_template("broadcast_prompt.txt")
+    # Load the broadcast prompt template from session state
+    prompt_template = st.session_state.broadcast_prompt
     prompt = prompt_template.format(game_info=game_info, 
                                     play_info=play_info, 
                                     preferences=preferences, 

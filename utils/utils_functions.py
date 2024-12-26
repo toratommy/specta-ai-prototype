@@ -14,7 +14,7 @@ from utils.prompt_helpers import (
     prepare_player_stats,
     prepare_betting_odds
 )
-from llm_interface import generate_broadcast
+from llm_interface import generate_broadcast, load_prompt_template
 import time
 import pytz
 
@@ -31,6 +31,8 @@ def initialize_session_state():
         st.session_state.last_sequence = None
     if "game_summary" not in st.session_state:
         st.session_state.game_summary = None
+    if "broadcast_prompt" not in st.session_state:
+        st.session_state.broadcast_prompt = load_prompt_template("broadcast_prompt.txt") 
 
 # Function to handle sign-out
 def sign_out():
@@ -50,6 +52,32 @@ def login_dialog():
             st.rerun()
         else:
             st.error("Invalid credentials.")
+
+# Login Dialog
+def prompt_container():
+    prompt_container = st.container(border=True, height=550)
+    with prompt_container:
+        st.header("Prompt Sandbox")
+        st.info("Sandbox mode activated! Edit your prompt template below.")
+        updated_template = st.text_area(label="Prompt Template", 
+                                        value=st.session_state.broadcast_prompt,
+                                        height=300)
+        if st.button("Update Prompt"):
+            st.session_state.broadcast_prompt = updated_template
+            st.success("Prompt saved!")
+        if st.download_button(label="Download Prompt", file_name='prompt_template.txt', data=updated_template):
+            st.success("Your prompt has been successfully downloaded to broadcast_prompt.txt")
+
+
+# Sandbox toggle fragment
+@st.fragment
+def sandbox_toggle():
+    st.session_state.sandbox_toggle = False
+    if st.toggle("Open prompt sandbox") == True:
+        st.session_state.sandbox_toggle = True
+
+    if st.session_state.sandbox_toggle == True:
+        prompt_container()
 
 # Player selection fragment
 @st.fragment 
@@ -74,7 +102,7 @@ def player_selections(home_players, away_players):
 
     # Allow users to select players
     selected_player_keys = st.multiselect(
-        "Select Players of Interest", list(all_players.keys())
+        "Select players of interest", list(all_players.keys())
     )
 
     # Return selected players as a dictionary
@@ -175,7 +203,7 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
 
         if play_data and play_data["Plays"]:
             st.session_state.last_sequence = max(play["Sequence"] for play in play_data["Plays"])
-            st.info("Broadcast is running...")
+            st.success("Broadcast is running... Hit 'Stop Play-by-Play Broadcast' button to stop the broadcast and update your selections.")
 
             with st.spinner("Generating play-by-play broadcast..."):
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
