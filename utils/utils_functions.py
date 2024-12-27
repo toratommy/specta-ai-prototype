@@ -218,7 +218,7 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
             )
 
     formatted_update = (
-        f"**Live Broadcast Update `{current_time.strftime('%Y-%m-%d %I:%M %p %Z')}`:**\n\n"
+        f"**Live Broadcast Update `{current_time.strftime('%Y-%m-%d %I:%M %p')}`:**\n\n"
         f"{game_details}\n\n"
         f"{broadcast_content}"
     )
