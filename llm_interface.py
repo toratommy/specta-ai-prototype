@@ -133,13 +133,16 @@ def generate_broadcast(play_context: PlayContext, temperature: float = 0.7) -> s
         str: Generated broadcast content.
     """
     prompt_template = st.session_state.broadcast_prompt
-    prompt = prompt_template.format(
+    updated_prompt = prompt_template.format(
         game_info=play_context.game_info,
         play_info=play_context.play_info,
         preferences=play_context.preferences,
         player_stats=play_context.player_stats,
         betting_odds=play_context.betting_odds,
     )
+
+    # Add explicit instructions to reset context
+    prompt = f"Use only the data below for the current play analysis:\n{updated_prompt}"
 
     try:
         client = OpenAI(api_key=st.secrets["api_keys"]["openai"])

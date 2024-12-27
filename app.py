@@ -128,7 +128,7 @@ if st.session_state.logged_in:
                                 if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
                                     st.session_state.broadcasting = True
                                     handle_broadcast_start(
-                                        game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt
+                                        selected_score_id, replay_api_key, broadcast_container, selected_players_dict, input_prompt
                                     )
                                 else:
                                     with broadcast_container:
@@ -142,7 +142,7 @@ if st.session_state.logged_in:
                                 
                                 while st.session_state.broadcasting == True:
                                     process_new_plays(
-                                        game_data,
+                                        selected_score_id,
                                         replay_api_key, 
                                         season_code, 
                                         broadcast_container, 

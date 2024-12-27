@@ -10,7 +10,8 @@ from sports_data import (
     get_player_season_stats,
     get_latest_in_game_odds,
     get_current_replay_time,
-    get_player_props
+    get_player_props,
+    get_game_details
 )
 from utils.play_context_helpers import (
     prepare_user_preferences,
@@ -199,7 +200,7 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
     return formatted_update
 
 # Start Play-by-Play Broadcast
-def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
+def handle_broadcast_start(score_id, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
     """
     Starts the play-by-play broadcast by fetching initial data and generating the first update.
 
@@ -215,6 +216,7 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
     """
     st.session_state.broadcasting = True
     current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
+    game_data = get_game_details(score_id, replay_api_key)
 
     with broadcast_container:
         with st.spinner("Fetching play-by-play data..."):
@@ -244,7 +246,7 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
             st.session_state.broadcasting = False
 
 # Process New Plays
-def process_new_plays(game_data, replay_api_key, season_code, broadcast_container, selected_players_dict, all_players_dict, input_prompt, broadcast_temp):
+def process_new_plays(score_id, replay_api_key, season_code, broadcast_container, selected_players_dict, all_players_dict, input_prompt, broadcast_temp):
     """
     Fetches and processes new play data, generating updates for each new play.
     Fetches box scores for priority players involved in the play.
@@ -261,7 +263,7 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
     """
     current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
 
-    score_id = game_data["Score"]["ScoreID"]
+    game_data = get_game_details(score_id, replay_api_key)
     play_data = get_play_by_play(score_id, replay_api_key)
 
     with broadcast_container:
