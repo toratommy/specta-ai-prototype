@@ -1,4 +1,4 @@
-# Helper functions for prompt-based customization
+# Helper functions preparing play context attributes
 
 def prepare_user_preferences(priority_players, tone):
     return {

@@ -4,6 +4,7 @@ from openai import OpenAI
 import streamlit as st
 import json
 from PIL import Image
+from utils.play_context import PlayContext
 
 # Helper function to load prompt templates
 def load_prompt_template(template_name):
@@ -120,32 +121,28 @@ def generate_game_summary(game_data, temperature=0.7):
         st.error(f"Failed to generate game summary: {e}")
         return box_score_json, "Error generating game summary."
 
-def generate_broadcast(game_info, play_info, preferences, player_stats, betting_odds, temperature):
+def generate_broadcast(play_context: PlayContext, temperature: float = 0.7) -> str:
     """
     Generates a customized play-by-play broadcast using OpenAI's API.
 
     Parameters:
-        game_info (str): Information about the selected game.
-        play_info (str): Information about the latest play.
-        preferences (str): User preferences for tone, storyline, and players of interest.
-        temperature (float): Temperature setting for the LLM.
+        play_context (PlayContext): Encapsulated context for the play.
+        temperature (float): Creativity level for the LLM.
 
     Returns:
-        str: LLM-generated broadcast.
+        str: Generated broadcast content.
     """
-    client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
-
-    # Load the broadcast prompt template from session state
     prompt_template = st.session_state.broadcast_prompt
-    prompt = prompt_template.format(game_info=game_info, 
-                                    play_info=play_info, 
-                                    preferences=preferences, 
-                                    player_stats=player_stats, 
-                                    betting_odds=betting_odds
-                                    )
+    prompt = prompt_template.format(
+        game_info=play_context.game_info,
+        play_info=play_context.play_info,
+        preferences=play_context.preferences,
+        player_stats=play_context.player_stats,
+        betting_odds=play_context.betting_odds,
+    )
 
-    # Call the OpenAI API
     try:
+        client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
         chat_completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -156,7 +153,7 @@ def generate_broadcast(game_info, play_info, preferences, player_stats, betting_
         )
         return chat_completion.choices[0].message.content.strip()
     except Exception as e:
-        st.error(f"Failed to generate play-by-play broadcast: {e}")
+        st.error(f"Failed to generate broadcast: {e}")
         return "Error generating broadcast."
     
 def infer_image_contents(uploaded_image, all_players):

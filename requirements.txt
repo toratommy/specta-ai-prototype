@@ -3,4 +3,4 @@ requests
 pyyaml
 pillow
 openai
-
+pydantic

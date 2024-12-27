@@ -1,4 +1,6 @@
 import streamlit as st
+import time
+import pytz
 from utils.auth import authenticate
 from sports_data import (
     get_play_by_play,
@@ -9,15 +11,35 @@ from sports_data import (
     get_current_replay_time,
     get_player_props
 )
-from utils.prompt_helpers import (
+from utils.play_context_helpers import (
     prepare_user_preferences,
     prepare_player_stats,
     prepare_betting_odds
 )
 from llm_interface import generate_broadcast, load_prompt_template
-import time
-import pytz
+from utils.play_context import PlayContext
 
+def prepare_play_context(game_data, play_data, player_stats, betting_odds, preferences):
+    """
+    Prepares a PlayContext object from individual data components.
+
+    Parameters:
+        game_data (dict): Game information.
+        play_data (dict): Play details.
+        player_stats (dict): Stats for players involved.
+        betting_odds (dict): Betting odds data.
+        preferences (dict): User preferences.
+
+    Returns:
+        PlayContext: A fully populated PlayContext object.
+    """
+    return PlayContext(
+        game_info=game_data,
+        play_info=play_data,
+        player_stats=player_stats,
+        betting_odds=betting_odds,
+        preferences=preferences,
+    )
 
 # Initialize session state variables
 def initialize_session_state():
@@ -152,23 +174,19 @@ def get_involved_players(play, players_dict):
     return involved_player_ids
 
 # Format Broadcast Updates
-def write_broadcast_update(current_time, game_data, play_data, preferences, selected_players, player_stats, betting_odds, broadcast_temp):
+def write_broadcast_update(current_time, play_context: PlayContext, broadcast_temp: float) -> str:
     """
     Format broadcast updates with a star icon for priority players.
     Highlights player names by removing team and position details.
     """
     # Generate broadcast content from the LLM
     broadcast_content = generate_broadcast(
-        game_info=game_data,
-        play_info=play_data,
-        preferences=preferences,
-        player_stats=player_stats,
-        betting_odds=betting_odds,
+        play_context,
         temperature=broadcast_temp
     )
 
     # Extract player names without team/position details
-    for player in selected_players:
+    for player in play_context.preferences['priority_players']:
         player_name = player.split(" (")[0]
         if player_name in broadcast_content:
             broadcast_content = broadcast_content.replace(
@@ -183,19 +201,19 @@ def write_broadcast_update(current_time, game_data, play_data, preferences, sele
 def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
     """
     Starts the play-by-play broadcast by fetching initial data and generating the first update.
-    
+
     Parameters:
         game_data (dict): Game data containing the score and other details.
         replay_api_key (str): API key for the SportsDataIO Replay API.
         broadcast_container (Streamlit container): UI container for displaying broadcasts.
-        selected_players (list): List of selected player names.
+        selected_players_dict (dict): Dictionary of selected players with names as keys and IDs as values.
         input_prompt (str): User-defined prompt for customizing broadcast tone.
 
     Returns:
         None
     """
     st.session_state.broadcasting = True
-    current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern")) 
+    current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
 
     with broadcast_container:
         with st.spinner("Fetching play-by-play data..."):
@@ -207,18 +225,16 @@ def handle_broadcast_start(game_data, replay_api_key, broadcast_container, selec
 
             with st.spinner("Generating play-by-play broadcast..."):
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
-                preferences = prepare_user_preferences(
-                        priority_players=selected_players_dict, 
-                        tone=input_prompt
-                    )
-                formatted_update = write_broadcast_update(
-                    current_time=current_time,
-                    game_data=play_data['Score'], 
-                    play_data=latest_play, 
-                    preferences=preferences, 
-                    selected_players=list(selected_players_dict.keys()), 
+                play_context = prepare_play_context(
+                    game_data=game_data["Score"],
+                    play_data=latest_play,
                     player_stats=None,
                     betting_odds=None,
+                    preferences=prepare_user_preferences(selected_players_dict, input_prompt),
+                )
+                formatted_update = write_broadcast_update(
+                    current_time=current_time,
+                    play_context=play_context,
                     broadcast_temp=0.7,
                 )
                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
@@ -231,7 +247,7 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
     """
     Fetches and processes new play data, generating updates for each new play.
     Fetches box scores for priority players involved in the play.
-    
+
     Parameters:
         game_data (dict): Game data containing the score and other details.
         replay_api_key (str): API key for the SportsDataIO Replay API.
@@ -242,8 +258,7 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
     Returns:
         None
     """
-
-    current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern")) 
+    current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
 
     score_id = game_data["Score"]["ScoreID"]
     play_data = get_play_by_play(score_id, replay_api_key)
@@ -264,7 +279,6 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
                 with st.spinner("Generating broadcast update..."):
                     involved_player_ids = get_involved_players(play, all_players_dict)
 
-                    # Fetch box scores, season stats, and player props for involved players
                     box_scores = {}
                     season_stats = {}
                     player_props = {}
@@ -273,34 +287,20 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
                         season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
                         player_props = get_player_props(score_id, involved_player_ids, replay_api_key)
 
-                    # Fetch latest in-game betting odds
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
 
-                    # Prepare data for the broadcast LLM
-                    preferences = prepare_user_preferences(
-                        priority_players=selected_players_dict, 
-                        tone=input_prompt
-                    )
-
-                    player_stats = prepare_player_stats(
-                        box_scores=box_scores,
-                        season_stats=season_stats
-                    )
-
-                    betting_odds = prepare_betting_odds(
-                        in_game_betting_odds=latest_betting_odds,
-                        player_props=player_props
+                    play_context = prepare_play_context(
+                        game_data=game_data["Score"],
+                        play_data=play,
+                        player_stats=prepare_player_stats(box_scores, season_stats),
+                        betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
+                        preferences=prepare_user_preferences(selected_players_dict, input_prompt),
                     )
 
                     formatted_update = write_broadcast_update(
                         current_time=current_time,
-                        game_data=play_data['Score'], 
-                        play_data=play, 
-                        preferences=preferences, 
-                        selected_players=list(selected_players_dict.keys()), 
-                        player_stats=player_stats,
-                        betting_odds=betting_odds,
-                        broadcast_temp=broadcast_temp
+                        play_context=play_context,
+                        broadcast_temp=broadcast_temp,
                     )
                     st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
