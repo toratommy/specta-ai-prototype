@@ -20,8 +20,8 @@ Betting Odds:
 
 Instructions:
 From the provided game information, extract the relevant game context, including:
-- Time Remaining: (format this as time and quarter)
-- Ball Location: (format this as team and yard line e.g., BAL 27-yard line)
+- Time Remaining: (format this as QuarterName, TimeRemainingMinutes:TimeRemainingSeconds, e.g, 3rd Quarter, 3:21 remaining)
+- Ball Location: (format this as YardLineTerrotory and YardLine e.g., BAL 27-yard line)
 - Possession: (format this as team initials)
 - Down: (format as Down & Distance e.g., 1st and 10)
 - Score: (format this as away team score - home team score)
