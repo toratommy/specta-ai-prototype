@@ -19,7 +19,7 @@ Betting Odds:
 - Data: {betting_odds}
 
 Instructions:
-From the provided game and play information, extract the relevant game context (I will explicitly tell you which data to use for each bullet point):
+From the provided game and play information, extract the relevant game context (I will explicitly tell you which data to use for each):
 - Score: (this should come from "Game Information". format as away team score - home team score)
 - Time Remaining: (this should come from "Play Information". format as QuarterName, TimeRemainingMinutes:TimeRemainingSeconds, e.g, 3rd Quarter, 3:21 remaining)
 - Ball Location: (this should come from "Play Information". format as YardLineTerrotory and YardLine e.g., BAL 27-yard line)
