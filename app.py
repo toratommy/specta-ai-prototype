@@ -17,7 +17,6 @@ from utils.utils_functions import (
     initialize_session_state,
     login_dialog,
     sandbox_toggle,
-    prompt_container,
     sign_out,
     player_selections,
     image_upload,
@@ -64,8 +63,8 @@ if st.session_state.logged_in:
     season_code = extract_season_code(replay_api_key)
     nfl_schedule = get_nfl_schedule(replay_api_key, season_code)
     current_replay_time = get_current_replay_time(replay_api_key)
-    current_replay_time_est = current_replay_time.astimezone(pytz.timezone("US/Eastern"))
-    st.info(current_replay_time_est)
+    current_replay_time_est = current_replay_time
+    
 
     if nfl_schedule:
         # Fetch current replay time for default date
@@ -114,10 +113,7 @@ if st.session_state.logged_in:
                             broadcast_temp = temperature_broadcast()
                             
                             # Sandbox for editing prompt templates
-                            
                             sandbox_toggle()
-                            
-
 
                             # Process uploaded image with LLM
                             #st.write(infer_image_contents(uploaded_image, list(all_players_dict.keys())))
@@ -157,9 +153,9 @@ if st.session_state.logged_in:
                                     )
                             else:
                                 with broadcast_container:
-                                    st.error(f"Playing has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game action to start or select another game.")
+                                    st.error(f"Playing has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for the game action to start or select another game.")
                         else:
-                            st.error(f'No games are in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for games to begin or try another replay API key that has games currently in progress.')
+                            st.error(f'No games are in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for games to begin or try another replay API key that has games currently in progress.')
                     # Tab 2: Game Summary
                     with tab2:
                         st.write("### Game Summary")
@@ -183,9 +179,9 @@ if st.session_state.logged_in:
                             else:
                                 st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
                         else:
-                            st.error(f"Selected game has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game to start or select another game.")
+                            st.error(f"Selected game has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for the game to start or select another game.")
                 else:
-                    st.error(f"Failed to fetch game details. The selected game is not yet in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p %Z')}. Please wait for the game to start, enter a different replay API key, or select another game.")
+                    st.error(f"Failed to fetch game details. The selected game is not yet in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for the game to start, enter a different replay API key, or select another game.")
             else:
                 st.warning("Please select a game using the left pane to proceed.")
         else:

@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import pytz
+import datetime
 from utils.auth import authenticate
 from sports_data import (
     get_play_by_play,
@@ -194,7 +195,7 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
                 f"**<span style='color:gold'>⭐ {player_name}</span>**"
             )
 
-    formatted_update = f"**Live Broadcast Update `{current_time.strftime('%Y-%m-%d %I:%M %p %Z')}`:**\n{broadcast_content}"
+    formatted_update = f"**Live Broadcast Update `{current_time.strftime('%Y-%m-%d %I:%M %p')}`:**\n{broadcast_content}"
     return formatted_update
 
 # Start Play-by-Play Broadcast

@@ -1,5 +1,7 @@
 import requests
 import streamlit as st
+from dateutil import parser
+import pytz
 from datetime import datetime
 import re
 
@@ -141,7 +143,14 @@ def get_current_replay_time(replay_api_key):
         response = requests.get(url)
         response.raise_for_status()
         current_time = response.json().get("CurrentTime")
-        return datetime.fromisoformat(current_time.split("Z")[0]) if current_time else None
+        
+        if current_time:
+            # Parse the time using dateutil and set it as Eastern Time
+            eastern_tz = pytz.timezone("US/Eastern")
+            replay_time = parser.isoparse(current_time).replace(tzinfo=eastern_tz)
+            return replay_time
+        else:
+            return None
     except Exception as e:
         st.error(f"Error fetching current replay time: {e}")
         return None
