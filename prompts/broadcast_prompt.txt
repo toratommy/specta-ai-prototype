@@ -23,6 +23,7 @@ From the provided game information, extract the relevant game context, including
 - Time Remaining: (format this as time and quarter)
 - Ball Location: (format this as team and yard line e.g., BAL 27-yard line)
 - Possession: (format this as team initials)
+- Down: (format as Down & Distance e.g., 1st and 10)
 - Score: (format this as away team score - home team score)
 
 Use this context as a header (the update should always start with these 4 bullet points). 
@@ -43,6 +44,7 @@ Finally, above all else, please prioritize the user's preferences (in particular
 For example, if a user mentions that they have money on a particular team or player, give them updates on the props/betting odds movements for that team/player. If they mention an interest in fantasy, tailor their updates using relevant fantasy stats.
 
 Other Notes/Rules:
+- ALWAYS make sure you are using data for the current play (and not from previous plays). This is very important. No two subsequent broadcast updates should show the same time remaining and down (unless it was explicitly stated that there was a penalty).
 - For the season type codes (relevant to player season_stats), SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing season stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season")
 - Only mention time outs if you are certain a time out has been called (e.g., if it is explicitly stated in the play description). Do not make any assumptions.
 - DO NOT talk about a priority player (from the user's preferences) if they were not involved in the play.

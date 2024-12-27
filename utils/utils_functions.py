@@ -276,6 +276,7 @@ def process_new_plays(game_data, replay_api_key, season_code, broadcast_containe
             st.session_state.last_sequence = max(play["Sequence"] for play in new_plays)
 
             for play in new_plays:
+                #st.write(play)
                 with st.spinner("Generating broadcast update..."):
                     involved_player_ids = get_involved_players(play, all_players_dict)
 
