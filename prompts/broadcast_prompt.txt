@@ -26,7 +26,7 @@ From the provided game and play information, extract the relevant details (note,
 - Possession: (this should come from "Play Information". format as team initials)
 - Down: (this should come from "Play Information". format as Down & Distance e.g., 1st and 10)
 
-Use this context as a header (the update should always start with these 4 bullet points). 
+Use this context as a header (the update should always start with these 5 bullet points). 
 
 Then, generate a customized play-by-play broadcast focused on what happened in the play (inferred from the provided "Play Information") and any notable player stats (inferred from the provided "Player Stats"). 
 Each broadcast update should include what happened during the play (2-4 sentences) as well as key highlights from the box scores/season stats for each of the players involved in the play (2 sentences max for each player).
