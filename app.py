@@ -11,7 +11,6 @@ from sports_data import (
 )
 from llm_interface import (
     generate_game_summary, 
-    load_prompt_template,
     infer_image_contents
 )
 from utils.utils_functions import (
@@ -66,6 +65,7 @@ if st.session_state.logged_in:
     nfl_schedule = get_nfl_schedule(replay_api_key, season_code)
     current_replay_time = get_current_replay_time(replay_api_key)
     current_replay_time_est = current_replay_time.astimezone(pytz.timezone("US/Eastern"))
+    st.info(current_replay_time_est)
 
     if nfl_schedule:
         # Fetch current replay time for default date
