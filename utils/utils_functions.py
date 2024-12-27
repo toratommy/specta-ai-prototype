@@ -181,6 +181,27 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
     Format broadcast updates with a star icon for priority players.
     Highlights player names by removing team and position details.
     """
+
+    # Ordinal mapping for quarters and downs
+    ordinals_down = {1: "1st", 2: "2nd", 3: "3rd", 4: "4th"}
+    ordinals_quarter = {'1': "1st", '2': "2nd", '3': "3rd", '4': "4th"}
+
+    # Extract key game details
+    score = f"{play_context.game_info['AwayScore']} - {play_context.game_info['HomeScore']}"
+    time_remaining = f"{ordinals_quarter.get(play_context.play_info['QuarterName'], play_context.play_info['QuarterName'])} Quarter, {play_context.play_info['TimeRemainingMinutes']}:{str(play_context.play_info['TimeRemainingSeconds']).zfill(2)} remaining"
+    ball_location = f"{play_context.play_info['YardLineTerritory']} {play_context.play_info['YardLine']}-yard line"
+    possession = play_context.play_info['Team']
+    down = f"{ordinals_down.get(play_context.play_info['Down'])} & {play_context.play_info['Distance']}"
+
+    # Format the key game details into bullet points
+    game_details = (
+        f"- **Score**: {score}\n"
+        f"- **Time Remaining**: {time_remaining}\n"
+        f"- **Ball Location**: {ball_location}\n"
+        f"- **Possession**: {possession}\n"
+        f"- **Down**: {down}"
+    )
+
     # Generate broadcast content from the LLM
     broadcast_content = generate_broadcast(
         play_context,
@@ -196,7 +217,11 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
                 f"**<span style='color:gold'>⭐ {player_name}</span>**"
             )
 
-    formatted_update = f"**Live Broadcast Update `{current_time.strftime('%Y-%m-%d %I:%M %p')}`:**\n{broadcast_content}"
+    formatted_update = (
+        f"**Live Broadcast Update `{current_time.strftime('%Y-%m-%d %I:%M %p %Z')}`:**\n\n"
+        f"{game_details}\n\n"
+        f"{broadcast_content}"
+    )
     return formatted_update
 
 # Start Play-by-Play Broadcast

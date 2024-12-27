@@ -19,16 +19,8 @@ Betting Odds:
 - Data: {betting_odds}
 
 Instructions:
-From the provided game and play information, extract the relevant details (note, I will explicitly tell you which data to use for each):
-- Score: (this should come from "Game Information". format as away team score - home team score)
-- Time Remaining: (this should come from "Play Information". format as QuarterName, TimeRemainingMinutes:TimeRemainingSeconds, e.g, 3rd Quarter, 3:21 remaining)
-- Ball Location: (this should come from "Play Information". format as YardLineTerrotory and YardLine e.g., BAL 27-yard line)
-- Possession: (this should come from "Play Information". format as team initials)
-- Down: (this should come from "Play Information". format as Down & Distance e.g., 1st and 10)
 
-Use this context as a header (the update should always start with these 5 bullet points). 
-
-Then, generate a customized play-by-play broadcast focused on what happened in the play (inferred from the provided "Play Information") and any notable player stats (inferred from the provided "Player Stats"). 
+Generate a customized play-by-play broadcast focused on what happened in the play (inferred from the provided "Play Information") and any notable player stats (inferred from the provided "Player Stats"). 
 Each broadcast update should include what happened during the play (2-4 sentences) as well as key highlights from the box scores/season stats for each of the players involved in the play (2 sentences max for each player).
 For each play, decide whether to emphasize the involved player's box scores or season stats based on whichever are more notable/interesting for that play. 
 Be sure to always mention key milestones such as 100 yards in the game, 10th touchdown of the season, etc. 
@@ -44,7 +36,7 @@ Finally, above all else, please prioritize the user's preferences (in particular
 For example, if a user mentions that they have money on a particular team or player, give them updates on the props/betting odds movements for that team/player. If they mention an interest in fantasy, tailor their updates using relevant fantasy stats.
 
 Other Notes/Rules:
-- ALWAYS make sure you are using data for the current play (and not from previous plays). This is very important. No two subsequent broadcast updates should show the same time remaining or down & distance (unless it was explicitly stated that there was a penalty, or no yards were gained).
+- DO NOT spend the broadcast update talking about things like the game score (unless its a scoring play), time remaining, ball location, down & distance, possession, and ball location. These key details will already be displayed to users in header above each update. 
 - For the season type codes (relevant to player season_stats), SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing season stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season")
 - Only mention time outs if you are certain a time out has been called (e.g., if it is explicitly stated in the play description). Do not make any assumptions.
 - DO NOT talk about a priority player (from the user's preferences) if they were not involved in the play.
