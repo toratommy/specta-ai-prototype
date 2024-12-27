@@ -224,8 +224,21 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
     )
     return formatted_update
 
+def generate_involved_player_stats(score_id, replay_api_key, play, season_code, players):
+    involved_player_ids = get_involved_players(play, players)
+    box_scores = {}
+    season_stats = {}
+    player_props = {}
+    if involved_player_ids:
+        box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
+        season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
+        player_props = get_player_props(score_id, involved_player_ids, replay_api_key)
+
+    return box_scores, season_stats, player_props
+
+
 # Start Play-by-Play Broadcast
-def handle_broadcast_start(score_id, replay_api_key, broadcast_container, selected_players_dict, input_prompt):
+def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_container, selected_players_dict, players, input_prompt, broadcast_temp):
     """
     Starts the play-by-play broadcast by fetching initial data and generating the first update.
 
@@ -253,17 +266,22 @@ def handle_broadcast_start(score_id, replay_api_key, broadcast_container, select
 
             with st.spinner("Generating play-by-play broadcast..."):
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
+
+                # get player stats and betting odds
+                box_scores, season_stats, player_props = generate_involved_player_stats(score_id, replay_api_key, latest_play, season_code, players)
+                latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
+
                 play_context = prepare_play_context(
                     game_data=game_data["Score"],
                     play_data=latest_play,
-                    player_stats=None,
-                    betting_odds=None,
+                    player_stats=prepare_player_stats(box_scores, season_stats),
+                    betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                     preferences=prepare_user_preferences(selected_players_dict, input_prompt),
                 )
                 formatted_update = write_broadcast_update(
                     current_time=current_time,
                     play_context=play_context,
-                    broadcast_temp=0.7,
+                    broadcast_temp=broadcast_temp,
                 )
                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
         else:
@@ -271,7 +289,7 @@ def handle_broadcast_start(score_id, replay_api_key, broadcast_container, select
             st.session_state.broadcasting = False
 
 # Process New Plays
-def process_new_plays(score_id, replay_api_key, season_code, broadcast_container, selected_players_dict, all_players_dict, input_prompt, broadcast_temp):
+def process_new_plays(score_id, replay_api_key, season_code, broadcast_container, selected_players_dict, players, input_prompt, broadcast_temp):
     """
     Fetches and processes new play data, generating updates for each new play.
     Fetches box scores for priority players involved in the play.
@@ -306,16 +324,9 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
             for play in new_plays:
                 #st.write(play)
                 with st.spinner("Generating broadcast update..."):
-                    involved_player_ids = get_involved_players(play, all_players_dict)
-
-                    box_scores = {}
-                    season_stats = {}
-                    player_props = {}
-                    if involved_player_ids:
-                        box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
-                        season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
-                        player_props = get_player_props(score_id, involved_player_ids, replay_api_key)
-
+                    
+                    # get player stats and betting odds
+                    box_scores, season_stats, player_props = generate_involved_player_stats(score_id, replay_api_key, play, season_code, players)
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
 
                     play_context = prepare_play_context(

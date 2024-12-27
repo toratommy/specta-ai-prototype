@@ -93,7 +93,7 @@ if st.session_state.logged_in:
                     away_team = game_data["Score"]["AwayTeam"]
                     home_players = get_players_by_team(home_team, replay_api_key)
                     away_players = get_players_by_team(away_team, replay_api_key)
-                    all_players_dict = {p['Name'] : p['PlayerID'] for p in home_players + away_players}
+                    players = {p['Name'] : p['PlayerID'] for p in home_players + away_players}
 
                     # Tabs for different features
                     tab1, tab2 = st.tabs(["Play-by-Play Broadcast", "Game Summary"])
@@ -116,7 +116,7 @@ if st.session_state.logged_in:
                             sandbox_toggle()
 
                             # Process uploaded image with LLM
-                            #st.write(infer_image_contents(uploaded_image, list(all_players_dict.keys())))
+                            #st.write(infer_image_contents(uploaded_image, list(players.keys())))
                             
                             # Scrollable container for broadcasts
                             st.divider()
@@ -128,7 +128,14 @@ if st.session_state.logged_in:
                                 if st.button("Start Play-by-Play Broadcast", key="start_broadcast"):
                                     st.session_state.broadcasting = True
                                     handle_broadcast_start(
-                                        selected_score_id, replay_api_key, broadcast_container, selected_players_dict, input_prompt
+                                        selected_score_id, 
+                                        replay_api_key, 
+                                        season_code,
+                                        broadcast_container, 
+                                        selected_players_dict, 
+                                        players,
+                                        input_prompt,
+                                        broadcast_temp
                                     )
                                 else:
                                     with broadcast_container:
@@ -147,7 +154,7 @@ if st.session_state.logged_in:
                                         season_code, 
                                         broadcast_container, 
                                         selected_players_dict, 
-                                        all_players_dict, 
+                                        players, 
                                         input_prompt,
                                         broadcast_temp
                                     )
