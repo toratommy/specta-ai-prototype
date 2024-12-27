@@ -97,7 +97,7 @@ def prompt_container():
 @st.fragment
 def sandbox_toggle():
     st.session_state.sandbox_toggle = False
-    if st.toggle("Open prompt sandbox") == True:
+    if st.toggle(label="Open prompt sandbox", help="Broadcast must be stopped in order to open prompt sandbox.") == True:
         st.session_state.sandbox_toggle = True
 
     if st.session_state.sandbox_toggle == True:
