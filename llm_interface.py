@@ -138,7 +138,8 @@ def generate_broadcast(play_context: PlayContext, temperature: float = 0.7) -> s
         game_info=play_context.game_info,
         play_info=play_context.play_info,
         preferences=play_context.preferences,
-        player_stats=play_context.player_stats,
+        player_box_scores=play_context.player_box_scores,
+        player_season_stats=play_context.player_season_stats,
         betting_odds=play_context.betting_odds,
     )
 

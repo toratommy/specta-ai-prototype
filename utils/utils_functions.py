@@ -15,20 +15,22 @@ from sports_data import (
 )
 from utils.play_context_helpers import (
     prepare_user_preferences,
-    prepare_player_stats,
+    prepare_player_season_stats,
+    prepare_player_box_scores,
     prepare_betting_odds
 )
 from llm_interface import generate_broadcast, load_prompt_template
 from utils.play_context import PlayContext
 
-def prepare_play_context(game_data, play_data, player_stats, betting_odds, preferences):
+def prepare_play_context(game_data, play_data, player_box_scores, player_season_stats, betting_odds, preferences):
     """
     Prepares a PlayContext object from individual data components.
 
     Parameters:
         game_data (dict): Game information.
         play_data (dict): Play details.
-        player_stats (dict): Stats for players involved.
+        player_box_scores (dict): Box scores for players involved.
+        player_season_stats (dict): Season stats for players involved.
         betting_odds (dict): Betting odds data.
         preferences (dict): User preferences.
 
@@ -38,7 +40,8 @@ def prepare_play_context(game_data, play_data, player_stats, betting_odds, prefe
     return PlayContext(
         game_info=game_data,
         play_info=play_data,
-        player_stats=player_stats,
+        player_box_scoress=player_box_scores,
+        player_season_stats=player_season_stats,
         betting_odds=betting_odds,
         preferences=preferences,
     )
@@ -277,7 +280,8 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                 play_context = prepare_play_context(
                     game_data=game_data["Score"],
                     play_data=latest_play,
-                    player_stats=prepare_player_stats(box_scores, season_stats),
+                    player_box_scores=prepare_player_box_scores(box_scores),
+                    player_season_stats=prepare_player_season_stats(season_stats),
                     betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                     preferences=prepare_user_preferences(selected_players_dict, input_prompt),
                 )
@@ -331,11 +335,13 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                     # get player stats and betting odds
                     box_scores, season_stats, player_props = generate_involved_player_stats(score_id, replay_api_key, play, season_code, players)
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
+                    #st.write(box_scores)
 
                     play_context = prepare_play_context(
                         game_data=game_data["Score"],
                         play_data=play,
-                        player_stats=prepare_player_stats(box_scores, season_stats),
+                        player_box_scores=prepare_player_box_scores(box_scores),                        
+                        player_season_stats=prepare_player_season_stats(season_stats),
                         betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                         preferences=prepare_user_preferences(selected_players_dict, input_prompt),
                     )

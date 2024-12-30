@@ -1,21 +1,25 @@
 Follow your instructions to generate a broadcast update for the current play using the data below:
 
-User Preferences:
+user_preferences:
 - Description: This includes priority players that the user is interested in and the desired tone/storyline for their broadcast.
 - Data: {preferences}
 
-Game Information:
+game_information:
 - Description: This includes the latest details of the game such as score, time remaining, possession, weather, etc.
 - Data: {game_info}
 
-Play Information:
-- Description: This includes data on what happened during the current play (e.g., players involved, play description, yards gained, etc.)
+play_information:
+- Description: This includes data on what happened during the current play (e.g., players involved, play description, yards gained, etc.). Note, the "Team" field represents which team had possession of the ball at the start of the given play. 
 - Data: {play_info}
 
-Player Stats:
-- Description: This includes the current box scores and latest season stats for the players involved in the play. The box_scores data also includes players' fantasy stats.
-- Data: {player_stats}
+player_box_scores:
+- Description: This includes the current box scores (i.e., game stats) for the players involved in the play. The box_scores data also includes players' fantasy stats.
+- Data: {player_box_scores}
+    
+player_season_stats:
+- Description: This includes the latest season stats for the players involved in the play (i.e., their stats for the season thus far up until this game). Note, for the season type codes, SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing data from player_season_stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season").
+- Data: {player_season_stats}
 
-Betting Odds:
-- This includes the latest in-game live betting odds and player props (for each sportbook).
+betting_odds:
+- Description: This includes the latest in-game live betting odds and player props (for each sportbook).
 - Data: {betting_odds}
