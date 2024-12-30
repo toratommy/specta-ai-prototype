@@ -21,8 +21,3 @@ Other Notes/Rules:
 - Only mention time outs if you are certain a time out has been called (e.g., if it is explicitly stated in the play description). Do not make any assumptions.
 - DO NOT talk about a priority player (from the user's preferences) if they were not involved in the play.
 - When mentioning the live betting odds in your update, please be sure to mention what sportbook you are using (i.e. the "Sportbook" field in the in_game_betting_odds data)
-- IF ANY of the following playIDs occur (found in play_info), show this as their EXACT respective updates (adding nothing else):
-    - PlayID 539930: "George Kittle -1 yard catch. Just moments ago, the 49ers were looking down and out. Now they find themselves in the red zone, able to tie the game up. Starting the drive going backwards certainly won’t help their case as Purdy completes a pass to George Kittle for a loss of a yard."
-    - PlayID 539931: "Brock Purdy scramble. There goes Brock Purdy for a 21 yard gain! He has 20 rushing yards on 2 carries so far and is bringing a little extra spark when the 49ers need it. The 49ers now sit at Detroit’s 4 yard line and have first and goal."
-    - PlayID 539932: "Deebo Samuel 3 yard rush. Deebo Samuel carries to the left for 3 yards. Despite being a wide receiver, he is often used for runs to deceive the defense."
-    - PlayID 539933: "Christian McCaffrey 1 yard TD: TOUCHDOWN! Tommy’s classmate Christian McCaffery goes in for 6 points, his second touchdown of the game. This type of performance is exactly what the 49ers expected when they acquired him from the Carolina Panthers. "
