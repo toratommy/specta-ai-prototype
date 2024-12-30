@@ -40,7 +40,7 @@ def prepare_play_context(game_data, play_data, player_box_scores, player_season_
     return PlayContext(
         game_info=game_data,
         play_info=play_data,
-        player_box_scoress=player_box_scores,
+        player_box_scores=player_box_scores,
         player_season_stats=player_season_stats,
         betting_odds=betting_odds,
         preferences=preferences,
@@ -335,7 +335,6 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                     # get player stats and betting odds
                     box_scores, season_stats, player_props = generate_involved_player_stats(score_id, replay_api_key, play, season_code, players)
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
-                    #st.write(box_scores)
 
                     play_context = prepare_play_context(
                         game_data=game_data["Score"],
@@ -345,6 +344,9 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                         betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                         preferences=prepare_user_preferences(selected_players_dict, input_prompt),
                     )
+
+                    # st.write(play_context.player_box_scores)
+                    # st.write(play_context.player_season_stats)
 
                     formatted_update = write_broadcast_update(
                         current_time=current_time,
