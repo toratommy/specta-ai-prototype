@@ -222,10 +222,10 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
                 player_name,
                 f"**<span style='color:gold'>⭐ {player_name}</span>**"
             )
-    demo_updates = {539930: "George Kittle -1 yard catch. Just moments ago, the 49ers were looking down and out. Now they find themselves in the red zone, able to tie the game up. Starting the drive going backwards certainly won’t help their case as Purdy completes a pass to George Kittle for a loss of a yard.",
-                    539931: "Brock Purdy scramble. There goes Brock Purdy for a 21 yard gain! He has 20 rushing yards on 2 carries so far and is bringing a little extra spark when the 49ers need it. The 49ers now sit at Detroit’s 4 yard line and have first and goal.",
-                    539932: "Deebo Samuel 3 yard rush. Deebo Samuel carries to the left for 3 yards. Despite being a wide receiver, he is often used for runs to deceive the defense.",
-                    539933: "Christian McCaffrey 1 yard TD: TOUCHDOWN! Tommy’s classmate Christian McCaffery goes in for 6 points, his second touchdown of the game. This type of performance is exactly what the 49ers expected when they acquired him from the Carolina Panthers. "}
+    demo_updates = {539930: "*George Kittle -1 yard catch.* Just moments ago, the 49ers were looking down and out. Now they find themselves in the red zone, able to tie the game up. Starting the drive going backwards certainly won’t help their case as Purdy completes a pass to George Kittle for a loss of a yard.",
+                    539931: "*Brock Purdy scramble.* There goes Brock Purdy for a 21 yard gain! He has 20 rushing yards on 2 carries so far and is bringing a little extra spark when the 49ers need it. The 49ers now sit at Detroit’s 4 yard line and have first and goal.",
+                    539932: "*Deebo Samuel 3 yard rush.* Deebo Samuel carries to the left for 3 yards. Despite being a wide receiver, he is often used for runs to deceive the defense.",
+                    539933: "*Christian McCaffrey 1 yard TD: TOUCHDOWN!* Tommy’s classmate Christian McCaffery goes in for 6 points, his second touchdown of the game. This type of performance is exactly what the 49ers expected when they acquired him from the Carolina Panthers. "}
     if play_context.play_info["PlayID"] in [539930, 539931, 539932, 539933]:
         broadcast_content = demo_updates.get(play_context.play_info["PlayID"])
         
