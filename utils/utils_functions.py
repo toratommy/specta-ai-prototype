@@ -350,7 +350,7 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                         betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                         preferences=prepare_user_preferences(selected_players_dict, input_prompt),
                     )
-                    # st.write(play_context.play_data)
+                    # st.write(play_context.play_info)
                     # st.write(play_context.player_box_scores)
                     # st.write(play_context.player_season_stats)
 
