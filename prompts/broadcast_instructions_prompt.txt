@@ -1,23 +1,3 @@
-User Preferences:
-- Description: This includes priority players that the user is interested in and the desired tone/storyline for their broadcast.
-- Data: {preferences}
-
-Game Information:
-- Description: This includes the latest details of the game such as score, time remaining, possession, weather, etc.
-- Data: {game_info}
-
-Play Information:
-- Description: This includes data on what happened during the current play (e.g., players involved, play description, yards gained, etc.)
-- Data: {play_info}
-
-Player Stats:
-- Description: This includes the current box scores and latest season stats for the players involved in the play. The box_scores data also includes players' fantasy stats.
-- Data: {player_stats}
-
-Betting Odds:
-- This includes the latest in-game live betting odds and player props (for each sportbook).
-- Data: {betting_odds}
-
 Instructions:
 
 Generate a customized play-by-play broadcast focused on what happened in the play (inferred from the provided "Play Information") and any notable player stats (inferred from the provided "Player Stats"). 

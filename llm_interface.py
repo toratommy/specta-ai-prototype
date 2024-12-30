@@ -110,7 +110,7 @@ def generate_game_summary(game_data, temperature=0.7):
         chat_completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant generating sports game summaries."},
+                {"role": "developer", "content": "You are a helpful assistant generating sports game summaries."},
                 {"role": "user", "content": prompt}
             ],
             temperature=temperature,
@@ -132,8 +132,9 @@ def generate_broadcast(play_context: PlayContext, temperature: float = 0.7) -> s
     Returns:
         str: Generated broadcast content.
     """
-    prompt_template = st.session_state.broadcast_prompt
-    updated_prompt = prompt_template.format(
+    instructions_prompt = st.session_state.broadcast_instructions_prompt
+    data_prompt_template = st.session_state.broadcast_data_prompt
+    data_prompt = data_prompt_template.format(
         game_info=play_context.game_info,
         play_info=play_context.play_info,
         preferences=play_context.preferences,
@@ -141,16 +142,13 @@ def generate_broadcast(play_context: PlayContext, temperature: float = 0.7) -> s
         betting_odds=play_context.betting_odds,
     )
 
-    # Add explicit instructions to reset context
-    prompt = f"Use only the data below for the current play analysis:\n{updated_prompt}"
-
     try:
         client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
         chat_completion = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant generating sports play-by-play broadcasts."},
-                {"role": "user", "content": prompt}
+                {"role": "developer", "content": f"You are a helpful assistant generating sports play-by-play broadcast updates. For each update, please adhere to the instructions below. {instructions_prompt}"},
+                {"role": "user", "content": data_prompt}
             ],
             temperature=temperature,
         )

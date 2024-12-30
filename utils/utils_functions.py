@@ -55,8 +55,11 @@ def initialize_session_state():
         st.session_state.last_sequence = None
     if "game_summary" not in st.session_state:
         st.session_state.game_summary = None
-    if "broadcast_prompt" not in st.session_state:
-        st.session_state.broadcast_prompt = load_prompt_template("broadcast_prompt.txt") 
+    if "broadcast_data_prompt" not in st.session_state:
+        st.session_state.broadcast_data_prompt = load_prompt_template("broadcast_data_prompt.txt")
+    if "broadcast_instructions_prompt" not in st.session_state:
+        st.session_state.broadcast_instructions_prompt = load_prompt_template("broadcast_instructions_prompt.txt")
+
 
 # Function to handle sign-out
 def sign_out():
@@ -84,13 +87,13 @@ def prompt_container():
         st.header("Prompt Sandbox")
         st.info("Sandbox mode activated! Edit your prompt template below.")
         updated_template = st.text_area(label="Prompt Template", 
-                                        value=st.session_state.broadcast_prompt,
+                                        value=st.session_state.broadcast_instructions_prompt,
                                         height=300)
         if st.button("Update Prompt"):
-            st.session_state.broadcast_prompt = updated_template
+            st.session_state.broadcast_instructions_prompt = updated_template
             st.success("Prompt saved!")
         if st.download_button(label="Download Prompt", file_name='prompt_template.txt', data=updated_template):
-            st.success("Your prompt has been successfully downloaded to broadcast_prompt.txt")
+            st.success("Your prompt has been successfully downloaded to prompt_template.txt")
 
 
 # Sandbox toggle fragment
