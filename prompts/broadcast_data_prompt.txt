@@ -17,7 +17,9 @@ player_box_scores:
 - Data: {player_box_scores}
     
 player_season_stats:
-- Description: This includes the latest season stats for the players involved in the play (i.e., their stats for the season thus far up until this game). Note, for the season type codes, SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing data from player_season_stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season").
+- Description: This includes the season stats for the players involved in the play (i.e., their stats for the season thus far up until, but not including, this game). 
+               Note, for the season type codes, SeasonType 1 = preseason, SeasonType 2 = regular season, SeasonType 3 = post season. Please use this information when referencing data from player_season_stats (e.g., if the SeasonType = 3, say "this postseason" instead of "this season").
+               It's important to know that the player_season_stats are NOT INCLUSINVE of the current games stats (i.e., player_box_scores). For example if a player has 9 touch downs in player_season_stats and 1 touchdown in player_box_scores you should interpret this as "one touchdown today making it his 10th of the season".
 - Data: {player_season_stats}
 
 betting_odds:
