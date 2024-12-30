@@ -2,7 +2,7 @@ Instructions:
 
 If no priority player is specified, limit the update to 2 sentences maximum for routine plays. 
 
-If it is a big play (e.g., crucial first down, scoring play, high yardage, crucial stop, etc.), provide a more in depth update (4-6 sentences, referencing player box scores and season stats, odds movements, etc.).
+If it is a big play (e.g., crucial first down, scoring play, high yardage, crucial stop, interception/fumble), provide a more in depth update (4-6 sentences, referencing player box scores and season stats, odds movements, etc.).
 
 For any scoring play, emphasize how many touchdowns the scoring player(s) has had this game (using player_box_scores) and this season (using player_season_stats), and their player props (if available in betting_odds).
 
