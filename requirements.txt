@@ -5,3 +5,4 @@ pillow
 openai
 pydantic
 langchain
+langchain-community
