@@ -4,7 +4,6 @@ import base64
 from openai import OpenAI
 import streamlit as st
 import json
-from langchain.document_loaders import PyMuPDFLoader
 from langchain.llms import OpenAI as LangChainOpenAI
 from PIL import Image
 from utils.play_context import PlayContext
