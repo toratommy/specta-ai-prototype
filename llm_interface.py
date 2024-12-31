@@ -1,8 +1,11 @@
 import os
 import io
+import base64
 from openai import OpenAI
 import streamlit as st
 import json
+from langchain.document_loaders import PyMuPDFLoader
+from langchain.llms import OpenAI as LangChainOpenAI
 from PIL import Image
 from utils.play_context import PlayContext
 
@@ -178,34 +181,32 @@ def infer_image_contents(uploaded_image, all_players):
     image.save(buffered, format="PNG")
     img_bytes = buffered.getvalue()
 
-    # Prepare LLM prompt
+    # Encode image in base64
+    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+
+    # Prepare LLM input
     players_text = ", ".join(all_players)
 
-    prompt = f"""
+    llm_prompt = f"""
     You are an AI assistant helping with sports image analysis.
-    Given the following image bytes (encoded in base64), determine:
+    Given the following image in base64 format, determine:
     1. Which player names from this list are present: {players_text}.
     2. Classify the image as one of the following types: 'bet slip', 'fantasy roster', or 'other'.
 
     Use OCR to extract text from the image and infer the information.
+
+    Image (base64): {img_base64}
     """
 
     try:
-        client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant for analyzing sports images."},
-                {"role": "user", "content": prompt},
-                {"role": "user", "content": f"Image bytes (base64): {img_bytes.hex()}"}
-            ],
-            temperature=0.5,
-        )
+        # Initialize OpenAI LLM via LangChain
+        llm = LangChainOpenAI(api_key=st.secrets["api_keys"]["openai"], model="gpt-4o-mini")
+        result = llm.generate([llm_prompt])
 
-        # Parse the response
-        analysis_result = response.choices[0].message.content.strip()
+        # Parse the result
+        response = result["text"]
         st.info("Image analysis completed.")
-        return eval(analysis_result)  # Ensure the result is properly formatted as a dictionary
+        return eval(response.strip())  # Ensure the result is properly formatted as a dictionary
 
     except Exception as e:
         st.error(f"Failed to analyze image contents: {e}")
