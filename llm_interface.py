@@ -174,13 +174,13 @@ def encode_image(uploaded_image):
     return base64.b64encode(image_bytes).decode("utf-8")
 
 
-def infer_image_contents(uploaded_image, all_players):
+def infer_image_contents(uploaded_image, players):
     """
     Infers player names and image type (bet slip, fantasy roster, or other) from the uploaded image.
 
     Parameters:
         uploaded_image: Uploaded file object from Streamlit.
-        all_players (list): List of all players from both teams.
+        players (dict): Dictionary of all players with names as keys and IDs as values.
 
     Returns:
         dict: Dictionary with inferred player names and image type.
@@ -192,7 +192,7 @@ def infer_image_contents(uploaded_image, all_players):
     base64_image = encode_image(uploaded_image)
 
     # Prepare LLM input
-    players_text = ", ".join(all_players)
+    players_text = ", ".join(players.keys())
 
     llm_prompt = f"""
     You are an AI assistant helping with sports image analysis.
@@ -229,16 +229,23 @@ def infer_image_contents(uploaded_image, all_players):
         # Remove any extra backticks if present and parse as JSON
         cleaned_response = analysis_result.strip("```json ").strip("```")
         cleaned_response = json.loads(cleaned_response)
+
+        detected_players = {
+            player: players[player]
+            for player in cleaned_response["players"]
+            if player in players
+        }
+
         st.success(
             f"""
             Image analysis complete!
             
             Image type detected: {cleaned_response['image_type']}
             
-            Players detected: `{cleaned_response['players']}`
+            Players detected: `{list(detected_players.keys())}`
             """
         )
-        return cleaned_response
+        return {"players": detected_players, "image_type": cleaned_response['image_type']}
     except Exception as e:
         st.error(f"Failed to analyze image contents: {e}")
-        return {"players": [], "image_type": "Error processing image"}
+        return {"players": {}, "image_type": "Error processing image"}

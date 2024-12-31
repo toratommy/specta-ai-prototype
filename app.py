@@ -110,7 +110,7 @@ if st.session_state.logged_in:
                             selected_players_dict = player_selections(home_players, away_players)
                             uploaded_image = image_upload()
                             if uploaded_image: # Process uploaded image with LLM
-                                image_results = infer_image_contents(uploaded_image, list(players.keys()))
+                                image_results = infer_image_contents(uploaded_image, players)
                             input_prompt = user_prompt()
                             broadcast_temp = temperature_broadcast()
                             
