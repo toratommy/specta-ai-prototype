@@ -158,7 +158,6 @@ def temperature_broadcast():
     return temperature_broadcast
 
 # image upload
-@st.fragment 
 def image_upload():
     image_upload = st.file_uploader("Upload an image (e.g., bet slip, fantasy roster)", type=["jpg", "png"])
     return image_upload

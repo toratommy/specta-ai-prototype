@@ -160,6 +160,20 @@ def generate_broadcast(play_context: PlayContext, temperature: float = 0.7) -> s
         st.error(f"Failed to generate broadcast: {e}")
         return "Error generating broadcast."
     
+def encode_image(uploaded_image):
+    """
+    Encodes an uploaded image file to a base64 string for LLM processing.
+
+    Parameters:
+        uploaded_image: Uploaded file object.
+
+    Returns:
+        str: Base64-encoded string of the image.
+    """
+    image_bytes = uploaded_image.read()  # Read the content of the uploaded file
+    return base64.b64encode(image_bytes).decode("utf-8")
+
+
 def infer_image_contents(uploaded_image, all_players):
     """
     Infers player names and image type (bet slip, fantasy roster, or other) from the uploaded image.
@@ -174,39 +188,57 @@ def infer_image_contents(uploaded_image, all_players):
     if not uploaded_image:
         return {"players": [], "image_type": "No image uploaded"}
 
-    # Load the image
-    image = Image.open(uploaded_image)
-    buffered = io.BytesIO()
-    image.save(buffered, format="PNG")
-    img_bytes = buffered.getvalue()
-
-    # Encode image in base64
-    img_base64 = base64.b64encode(img_bytes).decode('utf-8')
+    # Encode the image
+    base64_image = encode_image(uploaded_image)
 
     # Prepare LLM input
     players_text = ", ".join(all_players)
 
     llm_prompt = f"""
     You are an AI assistant helping with sports image analysis.
-    Given the following image in base64 format, determine:
+    Given the following image, determine:
     1. Which player names from this list are present: {players_text}.
     2. Classify the image as one of the following types: 'bet slip', 'fantasy roster', or 'other'.
 
     Use OCR to extract text from the image and infer the information.
-
-    Image (base64): {img_base64}
+    Respond in valid JSON format like this:
+    {{
+        "players": ["Player1", "Player2"],
+        "image_type": "bet slip"
+    }}
     """
 
+    client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": llm_prompt},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}},
+            ],
+        }
+    ]
+
     try:
-        # Initialize OpenAI LLM via LangChain
-        llm = LangChainOpenAI(api_key=st.secrets["api_keys"]["openai"], model="gpt-4o-mini")
-        result = llm.generate([llm_prompt])
-
-        # Parse the result
-        response = result["text"]
-        st.info("Image analysis completed.")
-        return eval(response.strip())  # Ensure the result is properly formatted as a dictionary
-
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages
+        )
+        analysis_result = response.choices[0].message.content.strip()
+        # Remove any extra backticks if present and parse as JSON
+        cleaned_response = analysis_result.strip("```json ").strip("```")
+        cleaned_response = json.loads(cleaned_response)
+        st.success(
+            f"""
+            Image analysis complete!
+            
+            Image type detected: {cleaned_response['image_type']}
+            
+            Players detected: `{cleaned_response['players']}`
+            """
+        )
+        return cleaned_response
     except Exception as e:
         st.error(f"Failed to analyze image contents: {e}")
         return {"players": [], "image_type": "Error processing image"}

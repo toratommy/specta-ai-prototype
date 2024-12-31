@@ -109,14 +109,13 @@ if st.session_state.logged_in:
                             # Initialize user selection variables
                             selected_players_dict = player_selections(home_players, away_players)
                             uploaded_image = image_upload()
+                            if uploaded_image: # Process uploaded image with LLM
+                                image_results = infer_image_contents(uploaded_image, list(players.keys()))
                             input_prompt = user_prompt()
                             broadcast_temp = temperature_broadcast()
                             
                             # Sandbox for editing prompt templates
                             sandbox_toggle()
-
-                            # Process uploaded image with LLM
-                            #st.write(infer_image_contents(uploaded_image, list(players.keys())))
                             
                             # Scrollable container for broadcasts
                             st.divider()
