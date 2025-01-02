@@ -63,7 +63,7 @@ def initialize_session_state():
     if "input_prompt" not in st.session_state:
         st.session_state.input_prompt = None
     if "image_results" not in st.session_state:
-        st.session_state.image_results = None
+        st.session_state.image_results = {'players':{}, 'image_type':'', 'description':''}
     if "broadcast_data_prompt" not in st.session_state:
         st.session_state.broadcast_data_prompt = load_prompt_template("broadcast_data_prompt.txt")
     if "broadcast_instructions_prompt" not in st.session_state:
@@ -267,11 +267,11 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
     """
     st.session_state.broadcasting = True
     current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
-    game_data = get_game_details(score_id, replay_api_key)
 
     with broadcast_container:
         with st.spinner("Fetching play-by-play data..."):
-            play_data = get_play_by_play(game_data["Score"]["ScoreID"], replay_api_key)
+            play_data = get_play_by_play(score_id, replay_api_key)
+            game_data = play_data["Score"]
 
         if play_data and play_data["Plays"]:
             st.session_state.last_sequence = max(play["Sequence"] for play in play_data["Plays"])
@@ -291,7 +291,7 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                     play_relevant_image_results = None
 
                 play_context = prepare_play_context(
-                    game_data=game_data["Score"],
+                    game_data=game_data,
                     play_data=latest_play,
                     player_box_scores=prepare_player_box_scores(box_scores),
                     player_season_stats=prepare_player_season_stats(season_stats),
@@ -326,8 +326,8 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
     """
     current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
 
-    game_data = get_game_details(score_id, replay_api_key)
     play_data = get_play_by_play(score_id, replay_api_key)
+    game_data = play_data["Score"]
 
     with broadcast_container:
         if not play_data:
@@ -355,7 +355,7 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                         play_relevant_image_results = None
 
                     play_context = prepare_play_context(
-                        game_data=game_data["Score"],
+                        game_data=game_data,
                         play_data=play,
                         player_box_scores=prepare_player_box_scores(box_scores),                        
                         player_season_stats=prepare_player_season_stats(season_stats),
@@ -374,4 +374,4 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                     st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 
             with st.spinner("Waiting for next play..."):
-                time.sleep(5)
+                time.sleep(3)
