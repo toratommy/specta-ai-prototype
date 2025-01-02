@@ -185,67 +185,69 @@ def infer_image_contents(uploaded_image, players):
     Returns:
         dict: Dictionary with inferred player names and image type.
     """
-    if not uploaded_image:
-        return {"players": [], "image_type": "No image uploaded"}
+    with st.spinner('Analyzing your image...'):
+        if not uploaded_image:
+            return {"players": {}, "image_type": "No image uploaded.", "description": "N/A"}
 
-    # Encode the image
-    base64_image = encode_image(uploaded_image)
+        # Encode the image
+        base64_image = encode_image(uploaded_image)
 
-    # Prepare LLM input
-    players_text = ", ".join(players.keys())
+        # Prepare LLM input
+        players_text = ", ".join(players.keys())
 
-    llm_prompt = f"""
-    You are an AI assistant helping with sports image analysis.
-    Given the following image, determine:
-    1. Which player names from this list are present: {players_text}.
-    2. Classify the image as one of the following types: 'bet slip', 'fantasy roster', or 'other'.
+        llm_prompt = f"""
+        You are an AI assistant helping with sports image analysis.
+        Given the following image, determine:
+        1. Which player names from this list are present: {players_text}.
+        2. Classify the image as one of the following types: 'bet slip', 'fantasy roster', or 'other'.
+        3. Generate a brief description of the image. E.g., if it's a bet slip, describe the bets placed. 
 
-    Use OCR to extract text from the image and infer the information.
-    Respond in valid JSON format like this:
-    {{
-        "players": ["Player1", "Player2"],
-        "image_type": "bet slip"
-    }}
-    """
+        Use OCR to extract text from the image and infer the information.
+        Respond in valid JSON format like this:
+        {{
+            "players": ["Player1", "Player2"],
+            "image_type": "bet slip"
+            "description": "Player1 50+ yards (+250 odds, $10 wager to win $25); Player2 to score 2+ tochdowns (+150 odds, $20 wager to win $30)"
+        }}
+        """
 
-    client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
+        client = OpenAI(api_key=st.secrets["api_keys"]["openai"])
 
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": llm_prompt},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}},
-            ],
-        }
-    ]
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": llm_prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{base64_image}"}},
+                ],
+            }
+        ]
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages
-        )
-        analysis_result = response.choices[0].message.content.strip()
-        # Remove any extra backticks if present and parse as JSON
-        cleaned_response = analysis_result.strip("```json ").strip("```")
-        cleaned_response = json.loads(cleaned_response)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages
+            )
+            analysis_result = response.choices[0].message.content.strip()
+            # Remove any extra backticks if present and parse as JSON
+            cleaned_response = analysis_result.strip("```json ").strip("```")
+            cleaned_response = json.loads(cleaned_response)
 
-        detected_players = {
-            player: players[player]
-            for player in cleaned_response["players"]
-            if player in players
-        }
+            detected_players = {
+                player: players[player]
+                for player in cleaned_response["players"]
+                if player in players
+            }
 
-        st.success(
-            f"""
-            Image analysis complete!
-            
-            Image type detected: {cleaned_response['image_type']}
-            
-            Players detected: `{list(detected_players.keys())}`
-            """
-        )
-        return {"players": detected_players, "image_type": cleaned_response['image_type']}
-    except Exception as e:
-        st.error(f"Failed to analyze image contents: {e}")
-        return {"players": {}, "image_type": "Error processing image"}
+            st.success(
+                f"""
+                Image analysis complete!
+                - `Image type detected: {cleaned_response['image_type']}`
+                - `Players detected: {list(detected_players.keys())}`
+                - `Description: {cleaned_response['description']}`
+                """
+            )
+            return {"players": detected_players, "image_type": cleaned_response['image_type'], "description": cleaned_response['description']}
+        except Exception as e:
+            st.error(f"Failed to analyze image contents: {e}")
+            return {"players": {}, "image_type": "Error processing image", "description": "N/A"}

@@ -12,9 +12,9 @@ If the play involves a priority player from the user's preferences, provide a mo
 
 Please try to keep sequential updates from being redundant (rotating through different elements of the provided context). Try to continue to build on storylines without repeating the same/similar insights over and over.
 
-Finally, above all else, please prioritize the user's preferences (in particular, the desired tone/storyline). This should always take precedence over all the instructions above.
-For example, if a user mentions that they have money on a particular team or player, give them updates on the props/betting odds movements for that team/player. If they mention an interest in fantasy, tailor their updates using relevant fantasy stats.
-Another example, is if a user asks for something to be removed from each update, please follow their instructions
+Finally, above all else, please prioritize the user's preferences such as the desired tone/storyline that they've specified, or any information from images they've uploaded such as bets that they've placed. This should always take precedence over all the instructions above.
+For example, if a user has money on a particular team or player, give them updates on the props/betting odds movements for that team/player. If they mention an interest in fantasy, tailor their updates using relevant fantasy stats.
+Another example is if a user asks for something to be removed from each update (e.g., if they are not interested in betting updates), please follow their instructions.
 
 
 Other Notes/Rules:

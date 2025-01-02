@@ -1,9 +1,10 @@
 # Helper functions preparing play context attributes
 
-def prepare_user_preferences(priority_players, tone):
+def prepare_user_preferences(priority_players, tone, image_results):
     return {
         "priority_players": priority_players,
         "tone": tone,
+        "uploaded_image":image_results,
     }
 
 def prepare_game_info(game_key, game_data):

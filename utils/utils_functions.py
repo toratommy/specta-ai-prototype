@@ -58,10 +58,18 @@ def initialize_session_state():
         st.session_state.last_sequence = None
     if "game_summary" not in st.session_state:
         st.session_state.game_summary = None
+    if "selected_players" not in st.session_state:
+        st.session_state.selected_players = None
+    if "input_prompt" not in st.session_state:
+        st.session_state.input_prompt = None
+    if "image_results" not in st.session_state:
+        st.session_state.image_results = None
     if "broadcast_data_prompt" not in st.session_state:
         st.session_state.broadcast_data_prompt = load_prompt_template("broadcast_data_prompt.txt")
     if "broadcast_instructions_prompt" not in st.session_state:
         st.session_state.broadcast_instructions_prompt = load_prompt_template("broadcast_instructions_prompt.txt")
+    if "broadcast_temp" not in st.session_state:
+        st.session_state.broadcast_temp = 0.7
 
 
 # Function to handle sign-out
@@ -239,11 +247,11 @@ def generate_involved_player_stats(score_id, replay_api_key, play, season_code, 
         season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
         player_props = get_player_props(score_id, involved_player_ids, replay_api_key)
 
-    return box_scores, season_stats, player_props
+    return box_scores, season_stats, player_props, involved_player_ids
 
 
 # Start Play-by-Play Broadcast
-def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_container, selected_players_dict, players, input_prompt, broadcast_temp):
+def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_container, players):
     """
     Starts the play-by-play broadcast by fetching initial data and generating the first update.
 
@@ -251,7 +259,7 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
         game_data (dict): Game data containing the score and other details.
         replay_api_key (str): API key for the SportsDataIO Replay API.
         broadcast_container (Streamlit container): UI container for displaying broadcasts.
-        selected_players_dict (dict): Dictionary of selected players with names as keys and IDs as values.
+        selected_players (dict): Dictionary of selected players with names as keys and IDs as values.
         input_prompt (str): User-defined prompt for customizing broadcast tone.
 
     Returns:
@@ -273,8 +281,14 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
 
                 # get player stats and betting odds
-                box_scores, season_stats, player_props = generate_involved_player_stats(score_id, replay_api_key, latest_play, season_code, players)
+                box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, replay_api_key, latest_play, season_code, players)
                 latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
+
+                # only pass through uploaded image results if they are relevant to the current play
+                if any(player in list(st.session_state.image_results['players'].values()) for player in involved_player_ids):
+                    play_relevant_image_results = st.session_state.image_results
+                else:
+                    play_relevant_image_results = None
 
                 play_context = prepare_play_context(
                     game_data=game_data["Score"],
@@ -282,12 +296,12 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                     player_box_scores=prepare_player_box_scores(box_scores),
                     player_season_stats=prepare_player_season_stats(season_stats),
                     betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
-                    preferences=prepare_user_preferences(selected_players_dict, input_prompt),
+                    preferences=prepare_user_preferences(st.session_state.selected_players, st.session_state.input_prompt, play_relevant_image_results),
                 )
                 formatted_update = write_broadcast_update(
                     current_time=current_time,
                     play_context=play_context,
-                    broadcast_temp=broadcast_temp,
+                    broadcast_temp=st.session_state.broadcast_temp,
                 )
                 st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
         else:
@@ -295,7 +309,7 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
             st.session_state.broadcasting = False
 
 # Process New Plays
-def process_new_plays(score_id, replay_api_key, season_code, broadcast_container, selected_players_dict, players, input_prompt, broadcast_temp):
+def process_new_plays(score_id, replay_api_key, season_code, broadcast_container, players):
     """
     Fetches and processes new play data, generating updates for each new play.
     Fetches box scores for priority players involved in the play.
@@ -304,7 +318,7 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
         game_data (dict): Game data containing the score and other details.
         replay_api_key (str): API key for the SportsDataIO Replay API.
         broadcast_container (Streamlit container): UI container for displaying broadcasts.
-        selected_players_dict (dict): Dictionary of selected players with names as keys and PlayerIDs as values.
+        selected_players (dict): Dictionary of selected players with names as keys and PlayerIDs as values.
         input_prompt (str): User-defined prompt for customizing broadcast tone.
 
     Returns:
@@ -331,8 +345,14 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                 with st.spinner("Generating broadcast update..."):
                     
                     # get player stats and betting odds
-                    box_scores, season_stats, player_props = generate_involved_player_stats(score_id, replay_api_key, play, season_code, players)
+                    box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, replay_api_key, play, season_code, players)
                     latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
+
+                    # only pass through uploaded image results if they are relevant to the current play
+                    if any(player in list(st.session_state.image_results['players'].values()) for player in involved_player_ids):
+                        play_relevant_image_results = st.session_state.image_results
+                    else:
+                        play_relevant_image_results = None
 
                     play_context = prepare_play_context(
                         game_data=game_data["Score"],
@@ -340,7 +360,7 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                         player_box_scores=prepare_player_box_scores(box_scores),                        
                         player_season_stats=prepare_player_season_stats(season_stats),
                         betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
-                        preferences=prepare_user_preferences(selected_players_dict, input_prompt),
+                        preferences=prepare_user_preferences(st.session_state.selected_players, st.session_state.input_prompt, play_relevant_image_results),
                     )
                     # st.write(play_context.play_info)
                     # st.write(play_context.player_box_scores)
@@ -349,7 +369,7 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                     formatted_update = write_broadcast_update(
                         current_time=current_time,
                         play_context=play_context,
-                        broadcast_temp=broadcast_temp,
+                        broadcast_temp=st.session_state.broadcast_temp,
                     )
                     st.chat_message("ai").markdown(formatted_update, unsafe_allow_html=True)
 

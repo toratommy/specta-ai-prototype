@@ -107,12 +107,13 @@ if st.session_state.logged_in:
 
                         if games_in_progress:
                             # Initialize user selection variables
-                            selected_players_dict = player_selections(home_players, away_players)
+                            st.session_state.selected_players = player_selections(home_players, away_players)
                             uploaded_image = image_upload()
                             if uploaded_image: # Process uploaded image with LLM
-                                image_results = infer_image_contents(uploaded_image, players)
-                            input_prompt = user_prompt()
-                            broadcast_temp = temperature_broadcast()
+                                st.session_state.image_results = infer_image_contents(uploaded_image, players)
+                                st.session_state.selected_players.update(st.session_state.image_results['players']) # add players from image to user selections
+                            st.session_state.input_prompt = user_prompt()
+                            st.session_state.broadcast_temp = temperature_broadcast()
                             
                             # Sandbox for editing prompt templates
                             sandbox_toggle()
@@ -131,10 +132,7 @@ if st.session_state.logged_in:
                                         replay_api_key, 
                                         season_code,
                                         broadcast_container, 
-                                        selected_players_dict, 
-                                        players,
-                                        input_prompt,
-                                        broadcast_temp
+                                        players
                                     )
                                 else:
                                     with broadcast_container:
@@ -151,11 +149,8 @@ if st.session_state.logged_in:
                                         selected_score_id,
                                         replay_api_key, 
                                         season_code, 
-                                        broadcast_container, 
-                                        selected_players_dict, 
-                                        players, 
-                                        input_prompt,
-                                        broadcast_temp
+                                        broadcast_container,
+                                        players
                                     )
                             else:
                                 with broadcast_container:

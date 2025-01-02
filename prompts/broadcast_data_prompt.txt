@@ -1,7 +1,7 @@
 Follow your instructions to generate a broadcast update for the current play using the data below:
 
 user_preferences:
-- Description: This includes priority players that the user is interested in and the desired tone/storyline for their broadcast.
+- Description: This includes priority players that the user is interested, the desired tone/storyline for their broadcast (i.e., how they wish to "view" the game), and extracted information from any images they've uploaded (e.g., bet slips, fantasy roster, etc.).
 - Data: {preferences}
 
 game_information:
