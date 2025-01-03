@@ -187,7 +187,7 @@ def infer_image_contents(uploaded_image, players):
     """
     with st.spinner('Analyzing your image...'):
         if not uploaded_image:
-            return {"players": {}, "image_type": "No image uploaded.", "description": "N/A"}
+            return {"players": {}, "image_type": "No image uploaded.", "description": "N/A", "image_name":""}
 
         # Encode the image
         base64_image = encode_image(uploaded_image)
@@ -247,7 +247,7 @@ def infer_image_contents(uploaded_image, players):
                 - `Description: {cleaned_response['description']}`
                 """
             )
-            return {"players": detected_players, "image_type": cleaned_response['image_type'], "description": cleaned_response['description']}
+            return {"players": detected_players, "image_type": cleaned_response['image_type'], "description": cleaned_response['description'], "image_name":uploaded_image.name}
         except Exception as e:
             st.error(f"Failed to analyze image contents: {e}")
-            return {"players": {}, "image_type": "Error processing image", "description": "N/A"}
+            return {"players": {}, "image_type": "Error processing image", "description": "N/A", "image_name":uploaded_image.name}

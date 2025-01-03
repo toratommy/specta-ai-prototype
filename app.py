@@ -118,7 +118,18 @@ if st.session_state.logged_in:
                             st.session_state.selected_players = player_selections(home_players, away_players)
                             uploaded_image = image_upload()
                             if uploaded_image: # Process uploaded image with LLM
-                                st.session_state.image_results = infer_image_contents(uploaded_image, players)
+                                # Prevent duplicate image processing
+                                if st.session_state.image_results['image_name'] != uploaded_image.name:
+                                    st.session_state.image_results = infer_image_contents(uploaded_image, players)
+                                else:
+                                    st.success(
+                                        f"""
+                                        Image analysis complete!
+                                        - `Image type detected: {st.session_state.image_results['image_type']}`
+                                        - `Players detected: {list(st.session_state.image_results['players'].keys())}`
+                                        - `Description: {st.session_state.image_results['description']}`
+                                        """
+                                    )
                                 st.session_state.selected_players.update(st.session_state.image_results['players']) # add players from image to user selections
                             st.session_state.input_prompt = user_prompt()
                             st.session_state.broadcast_temp = temperature_broadcast()

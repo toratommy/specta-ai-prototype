@@ -66,7 +66,7 @@ def initialize_session_state():
     if "input_prompt" not in st.session_state:
         st.session_state.input_prompt = None
     if "image_results" not in st.session_state:
-        st.session_state.image_results = {'players':{}, 'image_type':'', 'description':''}
+        st.session_state.image_results = {'players':{}, 'image_type':'', 'description':'', 'image_name':''}
     if "broadcast_data_prompt" not in st.session_state:
         st.session_state.broadcast_data_prompt = load_prompt_template("broadcast_data_prompt.txt")
     if "broadcast_instructions_prompt" not in st.session_state:
