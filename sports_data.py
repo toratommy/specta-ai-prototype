@@ -5,28 +5,53 @@ import pytz
 from datetime import datetime
 import re
 
-# Base URL for the SportsDataIO Replay API
-BASE_URL = "https://replay.sportsdata.io/api/v3/nfl/"
+def get_api_config():
+    """
+    Dynamically selects the API base URL and API key based on the selected mode.
 
-def extract_season_code(replay_api_key):
-    try:
-        url = f"https://replay.sportsdata.io/api/metadata?key={replay_api_key}"
-        response = requests.get(url)
-        response.raise_for_status()
-        # Extract season codes from AvailableEndpoints
-        endpoints = response.json().get("AvailableEndpoints", [])
-        season_codes = set(re.findall(r"/(\d{4}(?:post|pre|reg))/", " ".join(endpoints)))
-        return season_codes.pop() if season_codes else None
-    except Exception as e:
-        st.error(f"Error fetching metadata: {e}")
-        return None
+    Returns:
+        tuple: (base_url, api_key)
+    """
+    api_mode = st.session_state.get("api_mode", "Replay")
+    if api_mode == "Live":
+        return "https://api.sportsdata.io/v3/nfl/", st.secrets["api_keys"]["sportsdataio_live"]
+    # Use user-provided Replay API key if available, otherwise fall back to default
+    api_key = st.session_state.get("replay_api_key", st.secrets["api_keys"]["sportsdataio_replay"])
+    return "https://replay.sportsdata.io/api/v3/nfl/", api_key
+
+
+def extract_season_code():
+    base_url, api_key = get_api_config()
+    if st.session_state.api_mode == "Replay":
+        try:
+            url = f"https://replay.sportsdata.io/api/metadata?key={api_key}"
+            response = requests.get(url)
+            response.raise_for_status()
+            # Extract season codes from AvailableEndpoints
+            endpoints = response.json().get("AvailableEndpoints", [])
+            season_codes = set(re.findall(r"/(\d{4}(?:post|pre|reg))/", " ".join(endpoints)))
+            return season_codes.pop() if season_codes else None
+        except Exception as e:
+            st.error(f"Error fetching metadata: {e}")
+            return None
+    else:
+        try:
+            url = f"{base_url}/scores/json/currentseason"
+            params = {"key": api_key}
+            response = requests.get(url, params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            st.error(f"Error fetching season: {e}")
+            return None
     
-def get_nfl_schedule(replay_api_key, season_code):
+def get_nfl_schedule(season_code):
     """
     Fetches the NFL schedule from the SportsDataIO Replay API.
     """
-    url = f"{BASE_URL}scores/json/schedulesbasic/{season_code}"
-    params = {"key": replay_api_key}  # API key as query parameter
+    base_url, api_key = get_api_config()
+    url = f"{base_url}scores/json/schedulesbasic/{season_code}"
+    params = {"key": api_key}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()  # Raise exception for HTTP errors
@@ -35,12 +60,13 @@ def get_nfl_schedule(replay_api_key, season_code):
         st.error(f"Failed to fetch NFL schedule: {e}")
         return None
 
-def get_game_details(score_id, replay_api_key):
+def get_game_details(score_id):
     """
     Fetches detailed box score information for a specific game from the SportsDataIO Replay API.
     """
-    url = f"{BASE_URL}stats/json/boxscorebyscoreidv3/{score_id}"
-    params = {"key": replay_api_key}  # API key as query parameter
+    base_url, api_key = get_api_config()
+    url = f"{base_url}stats/json/boxscorebyscoreidv3/{score_id}"
+    params = {"key": api_key}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -49,14 +75,15 @@ def get_game_details(score_id, replay_api_key):
         st.error(f"Failed to fetch game details for ScoreID {score_id}: {e}")
         return None
 
-def get_players_by_team(team, replay_api_key):
+def get_players_by_team(team):
     """
     Fetches players for a specific team from the SportsDataIO Replay API.
     The team parameter must be in lowercase.
     """
+    base_url, api_key = get_api_config()
     team_lower = team.lower()  # Ensure the team name is lowercase
-    url = f"{BASE_URL}scores/json/playersbasic/{team_lower}"
-    params = {"key": replay_api_key}  # API key as query parameter
+    url = f"{base_url}scores/json/playersbasic/{team_lower}"
+    params = {"key": api_key}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()  # Raise exception for HTTP errors
@@ -65,12 +92,13 @@ def get_players_by_team(team, replay_api_key):
         st.error(f"Failed to fetch players for team {team}: {e}")
         return None
 
-def get_current_season(replay_api_key):
+def get_current_season():
     """
     Fetches the current NFL season using the SportsDataIO API.
     """
-    url = f"{BASE_URL}scores/json/currentseason"
-    params = {"key": replay_api_key}  # API key as query parameter
+    base_url, api_key = get_api_config()
+    url = f"{base_url}scores/json/currentseason"
+    params = {"key": api_key}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -79,12 +107,13 @@ def get_current_season(replay_api_key):
         st.error(f"Failed to fetch the current season: {e}")
         return None
 
-def get_current_week(replay_api_key):
+def get_current_week():
     """
     Fetches the current NFL week using the SportsDataIO API.
     """
-    url = f"{BASE_URL}scores/json/currentweek"
-    params = {"key": replay_api_key}  # API key as query parameter
+    base_url, api_key = get_api_config()
+    url = f"{base_url}scores/json/currentweek"
+    params = {"key": api_key}  # API key as query parameter
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -93,7 +122,7 @@ def get_current_week(replay_api_key):
         st.error(f"Failed to fetch the current week: {e}")
         return None
 
-def get_play_by_play(game_id, replay_api_key):
+def get_play_by_play(game_id):
     """
     Fetches all plays for a specific game from the SportsDataIO Replay API.
 
@@ -103,8 +132,9 @@ def get_play_by_play(game_id, replay_api_key):
     Returns:
         dict: Play-by-play data for the game.
     """
-    url = f"{BASE_URL}pbp/json/playbyplay/{game_id}"
-    params = {"key": replay_api_key}
+    base_url, api_key = get_api_config()
+    url = f"{base_url}pbp/json/playbyplay/{game_id}"
+    params = {"key": api_key}
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -137,30 +167,40 @@ def filter_new_plays(play_data, last_sequence):
     ]
     return new_plays
 
-def get_current_replay_time(replay_api_key):
-    try:
-        url = f"https://replay.sportsdata.io/api/metadata?key={replay_api_key}"
-        response = requests.get(url)
-        response.raise_for_status()
-        current_time = response.json().get("CurrentTime")
-        
-        if current_time:
-            # Parse the time using dateutil and set it as Eastern Time
-            eastern_tz = pytz.timezone("US/Eastern")
-            replay_time = parser.isoparse(current_time).replace(tzinfo=eastern_tz)
-            return replay_time
-        else:
+def get_current_replay_time():
+    _, api_key = get_api_config()
+    if st.session_state.api_mode == "Replay":
+        try:
+            url = f"https://replay.sportsdata.io/api/metadata?key={api_key}"
+            response = requests.get(url)
+            response.raise_for_status()
+            current_time = response.json().get("CurrentTime")
+            
+            if current_time:
+                # Parse the time using dateutil and set it as Eastern Time
+                eastern_tz = pytz.timezone("US/Eastern")
+                replay_time = parser.isoparse(current_time).replace(tzinfo=eastern_tz)
+                return replay_time
+            else:
+                return None
+        except Exception as e:
+            st.error(f"Error fetching current replay time: {e}")
             return None
-    except Exception as e:
-        st.error(f"Error fetching current replay time: {e}")
-        return None
+    else:
+        # Get the current datetime in UTC
+        utc_now = datetime.now(pytz.utc)
+        # Convert UTC to Eastern Standard Time
+        est_now = utc_now.astimezone(pytz.timezone('US/Eastern'))
 
-def check_games_in_progress(replay_api_key):
+        return est_now
+
+def check_games_in_progress():
     """
     Checks if any NFL games are currently in progress.
     Returns True if games are in progress, otherwise False.
     """
-    url = f"{BASE_URL}scores/json/areanygamesinprogress?key={replay_api_key}"
+    base_url, api_key = get_api_config()
+    url = f"{base_url}scores/json/areanygamesinprogress?key={api_key}"
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -169,12 +209,13 @@ def check_games_in_progress(replay_api_key):
         st.error(f"Failed to check games in progress: {e}")
         return None
 
-def get_player_box_scores(score_id, player_ids, replay_api_key):
+def get_player_box_scores(score_id, player_ids):
     """
     Fetches player box scores from the API and filters relevant players.
     """
-    url = f"{BASE_URL}stats/json/boxscorebyscoreidv3/{score_id}"
-    params = {"key": replay_api_key}
+    base_url, api_key = get_api_config()
+    url = f"{base_url}stats/json/boxscorebyscoreidv3/{score_id}"
+    params = {"key": api_key}
 
     try:
         response = requests.get(url, params=params)
@@ -200,19 +241,20 @@ def get_player_box_scores(score_id, player_ids, replay_api_key):
         return {}
 
 
-def get_player_season_stats(player_ids, replay_api_key, season_code):
+def get_player_season_stats(player_ids, season_code):
     """
     Fetches player season stats from the API and filters relevant players.
 
     Parameters:
         player_ids (list): List of player IDs to filter.
-        replay_api_key (str): API key for authentication.
+        api_key (str): API key for authentication.
 
     Returns:
         dict: Dictionary of player stats keyed by PlayerID.
     """
-    url = f"{BASE_URL}stats/json/playerseasonstats/{season_code}"
-    params = {"key": replay_api_key}
+    base_url, api_key = get_api_config()
+    url = f"{base_url}stats/json/playerseasonstats/{season_code}"
+    params = {"key": api_key}
 
     try:
         response = requests.get(url, params=params)
@@ -238,21 +280,22 @@ def get_player_season_stats(player_ids, replay_api_key, season_code):
         st.error(f"Failed to fetch player season stats: {e}")
         return {}
 
-def get_latest_in_game_odds(score_id, replay_api_key):
+def get_latest_in_game_odds(score_id):
     """
     Fetches the most recent in-game betting odds for each sportsbook for a given ScoreId
     from the SportsDataIO Replay API.
 
     Parameters:
         score_id (int): The ScoreId of the game.
-        replay_api_key (str): API key for authenticating with the SportsDataIO Replay API.
+        api_key (str): API key for authenticating with the SportsDataIO Replay API.
 
     Returns:
         list: A list of dictionaries containing the latest odds for each sportsbook,
               or None if no odds are available.
     """
-    url = f"{BASE_URL}odds/json/livegameoddslinemovement/{score_id}"
-    params = {"key": replay_api_key}
+    base_url, api_key = get_api_config()
+    url = f"{base_url}odds/json/livegameoddslinemovement/{score_id}"
+    params = {"key": api_key}
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
@@ -280,20 +323,21 @@ def get_latest_in_game_odds(score_id, replay_api_key):
         st.error(f"Failed to fetch in-game betting odds for ScoreId {score_id}: {e}")
         return None
 
-def get_player_props(score_id, player_ids, replay_api_key):
+def get_player_props(score_id, player_ids):
     """
     Fetches player props for a given score ID and filters the response based on the list of player IDs.
 
     Parameters:
         score_id (int): The score ID of the game.
         player_ids (list): List of player IDs to filter the response.
-        replay_api_key (str): API key for SportsData.io.
+        api_key (str): API key for SportsData.io.
 
     Returns:
         list: Filtered list of player props for the specified players.
     """
-    url = f"{BASE_URL}odds/json/bettingplayerpropsbyscoreid/{score_id}"
-    params = {"key": replay_api_key}
+    base_url, api_key = get_api_config()
+    url = f"{base_url}odds/json/bettingplayerpropsbyscoreid/{score_id}"
+    params = {"key": api_key}
     
     try:
         response = requests.get(url, params=params)

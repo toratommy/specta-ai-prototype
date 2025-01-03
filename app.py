@@ -49,30 +49,38 @@ if st.session_state.logged_in:
             st.rerun()
         st.divider()
 
+        # Add API Mode Toggle
+        st.sidebar.subheader("API Mode")
+        st.session_state.api_mode = st.sidebar.radio(
+            "Choose API Mode:",
+            options=["Replay", "Live"],
+            index=0,  # Default to Replay
+            help="Toggle between Replay and Live modes for the SportsData API."
+        )
+        if st.session_state.api_mode == "Replay":
+            st.session_state.replay_api_key = st.sidebar.text_input(
+            "Replay API Key",
+            value=st.secrets["api_keys"]["sportsdataio_replay"],
+            type="password",
+            help="Click the link for details on generating a new replay API key [here](https://sportsdata.io/members/replays).",
+            )
+
 # Main Content After Login
 if st.session_state.logged_in:
     st.sidebar.header("Game Selection")
     st.sidebar.write("Choose a date and game to customize your broadcast:")
-    replay_api_key = st.sidebar.text_input(
-        "Replay API Key",
-        value=st.secrets["api_keys"]["sportsdataio"],
-        type="password",
-        help="Click the link for details on generating a new replay API key [here](https://sportsdata.io/members/replays).",
-    )
 
-    season_code = extract_season_code(replay_api_key)
-    nfl_schedule = get_nfl_schedule(replay_api_key, season_code)
-    current_replay_time = get_current_replay_time(replay_api_key)
-    current_replay_time_est = current_replay_time
+    season_code = extract_season_code()
+    nfl_schedule = get_nfl_schedule(season_code)
+    current_time_est = get_current_replay_time()
     
-
     if nfl_schedule:
-        # Fetch current replay time for default date
-        default_date = current_replay_time or datetime.now()
+        # Fetch current retime for default date
+        default_date = current_time_est or datetime.now()
         selected_date = st.sidebar.date_input("Select Date:", value=default_date.date())
 
         games_on_date = [
-            game for game in nfl_schedule if datetime.strptime(game["Date"], "%Y-%m-%dT%H:%M:%S").date() == selected_date
+            game for game in nfl_schedule if game["Date"] != None and datetime.strptime(game["Date"], "%Y-%m-%dT%H:%M:%S").date() == selected_date
         ]
 
         if games_on_date:
@@ -86,13 +94,13 @@ if st.session_state.logged_in:
             )
 
             if selected_score_id != "Select a Game":
-                game_data = get_game_details(selected_score_id, replay_api_key)
+                game_data = get_game_details(selected_score_id)
 
                 if game_data:
                     home_team = game_data["Score"]["HomeTeam"]
                     away_team = game_data["Score"]["AwayTeam"]
-                    home_players = get_players_by_team(home_team, replay_api_key)
-                    away_players = get_players_by_team(away_team, replay_api_key)
+                    home_players = get_players_by_team(home_team)
+                    away_players = get_players_by_team(away_team)
                     players = {p['Name'] : p['PlayerID'] for p in home_players + away_players}
 
                     # Tabs for different features
@@ -103,7 +111,7 @@ if st.session_state.logged_in:
                         st.write("### Customized Play-by-Play Broadcast")
 
                         # Check if games are in progress
-                        games_in_progress = check_games_in_progress(replay_api_key)
+                        games_in_progress = check_games_in_progress()
 
                         if games_in_progress:
                             # Initialize user selection variables
@@ -129,7 +137,7 @@ if st.session_state.logged_in:
                                     st.session_state.broadcasting = True
                                     handle_broadcast_start(
                                         selected_score_id, 
-                                        replay_api_key, 
+                                        st.session_state.replay_api_key, 
                                         season_code,
                                         broadcast_container, 
                                         players
@@ -147,16 +155,16 @@ if st.session_state.logged_in:
                                 while st.session_state.broadcasting == True:
                                     process_new_plays(
                                         selected_score_id,
-                                        replay_api_key, 
+                                        st.session_state.replay_api_key, 
                                         season_code, 
                                         broadcast_container,
                                         players
                                     )
                             else:
                                 with broadcast_container:
-                                    st.error(f"Playing has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for the game action to start or select another game.")
+                                    st.error(f"Playing has not yet started. The current time is {current_time_est.strftime('%Y-%m-%d %I:%M %p')} EST. Please wait for the game action to start or select another game.")
                         else:
-                            st.error(f'No games are in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for games to begin or try another replay API key that has games currently in progress.')
+                            st.error(f'No games are in progress. The current time is {current_time_est.strftime('%Y-%m-%d %I:%M %p')} EST. Please wait for games to begin or try another replay API key that has games currently in progress.')
                     # Tab 2: Game Summary
                     with tab2:
                         st.write("### Game Summary")
@@ -180,9 +188,9 @@ if st.session_state.logged_in:
                             else:
                                 st.warning("No game summary generated yet. Click 'Refresh Game Summary'.")
                         else:
-                            st.error(f"Selected game has not yet started. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for the game to start or select another game.")
+                            st.error(f"Selected game has not yet started. The current time is {current_time_est.strftime('%Y-%m-%d %I:%M %p')} EST. Please wait for the game to start or select another game.")
                 else:
-                    st.error(f"Failed to fetch game details. The selected game is not yet in progress. The current replay time is {current_replay_time_est.strftime('%Y-%m-%d %I:%M %p')}. Please wait for the game to start, enter a different replay API key, or select another game.")
+                    st.error(f"Failed to fetch game details. The selected game is not yet in progress. The current time is {current_time_est.strftime('%Y-%m-%d %I:%M %p')} EST. Please wait for the game to start, enter a different replay API key, or select another game.")
             else:
                 st.warning("Please select a game using the left pane to proceed.")
         else:

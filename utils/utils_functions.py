@@ -10,8 +10,7 @@ from sports_data import (
     get_player_season_stats,
     get_latest_in_game_odds,
     get_current_replay_time,
-    get_player_props,
-    get_game_details
+    get_player_props
 )
 from utils.play_context_helpers import (
     prepare_user_preferences,
@@ -52,6 +51,10 @@ def initialize_session_state():
         st.session_state.logged_in = False
     if "username" not in st.session_state:
         st.session_state.username = ""
+    if "api_mode" not in st.session_state:
+        st.session_state.api_mode = "Replay"  # Default to Replay
+    if "replay_api_key" not in st.session_state:
+        st.session_state.replay_api_key = st.secrets["api_keys"]["sportsdataio_replay"]  # Default Replay key
     if "broadcasting" not in st.session_state:
         st.session_state.broadcasting = False
     if "last_sequence" not in st.session_state:
@@ -237,15 +240,15 @@ def write_broadcast_update(current_time, play_context: PlayContext, broadcast_te
     )
     return formatted_update
 
-def generate_involved_player_stats(score_id, replay_api_key, play, season_code, players):
+def generate_involved_player_stats(score_id, play, season_code, players):
     involved_player_ids = get_involved_players(play, players)
     box_scores = {}
     season_stats = {}
     player_props = {}
     if involved_player_ids:
-        box_scores = get_player_box_scores(score_id, involved_player_ids, replay_api_key)
-        season_stats = get_player_season_stats(involved_player_ids, replay_api_key, season_code)
-        player_props = get_player_props(score_id, involved_player_ids, replay_api_key)
+        box_scores = get_player_box_scores(score_id, involved_player_ids)
+        season_stats = get_player_season_stats(involved_player_ids, season_code)
+        player_props = get_player_props(score_id, involved_player_ids)
 
     return box_scores, season_stats, player_props, involved_player_ids
 
@@ -266,11 +269,11 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
         None
     """
     st.session_state.broadcasting = True
-    current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
+    current_time = get_current_replay_time().astimezone(pytz.timezone("US/Eastern"))
 
     with broadcast_container:
         with st.spinner("Fetching play-by-play data..."):
-            play_data = get_play_by_play(score_id, replay_api_key)
+            play_data = get_play_by_play(score_id)
             game_data = play_data["Score"]
 
         if play_data and play_data["Plays"]:
@@ -281,8 +284,8 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                 latest_play = max(play_data["Plays"], key=lambda x: x["Sequence"])
 
                 # get player stats and betting odds
-                box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, replay_api_key, latest_play, season_code, players)
-                latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
+                box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, latest_play, season_code, players)
+                latest_betting_odds = get_latest_in_game_odds(score_id)
 
                 # only pass through uploaded image results if they are relevant to the current play
                 if any(player in list(st.session_state.image_results['players'].values()) for player in involved_player_ids):
@@ -324,9 +327,9 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
     Returns:
         None
     """
-    current_time = get_current_replay_time(replay_api_key).astimezone(pytz.timezone("US/Eastern"))
+    current_time = get_current_replay_time().astimezone(pytz.timezone("US/Eastern"))
 
-    play_data = get_play_by_play(score_id, replay_api_key)
+    play_data = get_play_by_play(score_id)
     game_data = play_data["Score"]
 
     with broadcast_container:
@@ -345,8 +348,8 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                 with st.spinner("Generating broadcast update..."):
                     
                     # get player stats and betting odds
-                    box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, replay_api_key, play, season_code, players)
-                    latest_betting_odds = get_latest_in_game_odds(score_id, replay_api_key)
+                    box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, play, season_code, players)
+                    latest_betting_odds = get_latest_in_game_odds(score_id)
 
                     # only pass through uploaded image results if they are relevant to the current play
                     if any(player in list(st.session_state.image_results['players'].values()) for player in involved_player_ids):
