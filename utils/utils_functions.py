@@ -398,8 +398,8 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                         preferences=prepare_user_preferences(st.session_state.selected_players, st.session_state.input_prompt, play_relevant_image_results),
                     )
                     # st.write(play_context.play_info)
-                    st.write(play_context.player_box_scores)
-                    st.write(play_context.player_season_stats)
+                    # st.write(play_context.player_box_scores)
+                    # st.write(play_context.player_season_stats)
 
                     formatted_update = write_broadcast_update(
                         current_time=current_time,
