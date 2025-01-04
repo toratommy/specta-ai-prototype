@@ -252,6 +252,30 @@ def generate_involved_player_stats(score_id, play, season_code, players):
 
     return box_scores, season_stats, player_props, involved_player_ids
 
+def filter_non_relevant_data(data):
+    """
+    Filters out entries with zero or null values from a nested dictionary.
+    
+    Parameters:
+        data (dict): The nested data dictionary to filter.
+
+    Returns:
+        dict: Filtered data dictionary.
+    """
+    if not isinstance(data, dict):
+        return data  # Return non-dict values as is
+
+    filtered_data = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            # Recursively filter nested dictionaries
+            filtered_value = filter_non_relevant_data(value)
+            if filtered_value:  # Include only non-empty filtered results
+                filtered_data[key] = filtered_value
+        elif value not in (0, None):
+            filtered_data[key] = value
+
+    return filtered_data
 
 # Start Play-by-Play Broadcast
 def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_container, players):
@@ -287,6 +311,10 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                 box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, latest_play, season_code, players)
                 latest_betting_odds = get_latest_in_game_odds(score_id)
 
+                # Filter non-relevant data
+                filtered_box_scores = filter_non_relevant_data(box_scores)
+                filtered_season_stats = filter_non_relevant_data(season_stats)
+
                 # only pass through uploaded image results if they are relevant to the current play
                 if any(player in list(st.session_state.image_results['players'].values()) for player in involved_player_ids):
                     play_relevant_image_results = st.session_state.image_results
@@ -296,8 +324,8 @@ def handle_broadcast_start(score_id, replay_api_key, season_code, broadcast_cont
                 play_context = prepare_play_context(
                     game_data=game_data,
                     play_data=latest_play,
-                    player_box_scores=prepare_player_box_scores(box_scores),
-                    player_season_stats=prepare_player_season_stats(season_stats),
+                    player_box_scores=prepare_player_box_scores(filtered_box_scores),
+                    player_season_stats=prepare_player_season_stats(filtered_season_stats),
                     betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                     preferences=prepare_user_preferences(st.session_state.selected_players, st.session_state.input_prompt, play_relevant_image_results),
                 )
@@ -351,6 +379,10 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                     box_scores, season_stats, player_props, involved_player_ids = generate_involved_player_stats(score_id, play, season_code, players)
                     latest_betting_odds = get_latest_in_game_odds(score_id)
 
+                    # Filter non-relevant data
+                    filtered_box_scores = filter_non_relevant_data(box_scores)
+                    filtered_season_stats = filter_non_relevant_data(season_stats)
+
                     # only pass through uploaded image results if they are relevant to the current play
                     if any(player in list(st.session_state.image_results['players'].values()) for player in involved_player_ids):
                         play_relevant_image_results = st.session_state.image_results
@@ -360,14 +392,14 @@ def process_new_plays(score_id, replay_api_key, season_code, broadcast_container
                     play_context = prepare_play_context(
                         game_data=game_data,
                         play_data=play,
-                        player_box_scores=prepare_player_box_scores(box_scores),                        
-                        player_season_stats=prepare_player_season_stats(season_stats),
+                        player_box_scores=prepare_player_box_scores(filtered_box_scores),                        
+                        player_season_stats=prepare_player_season_stats(filtered_season_stats),
                         betting_odds=prepare_betting_odds(latest_betting_odds, player_props),
                         preferences=prepare_user_preferences(st.session_state.selected_players, st.session_state.input_prompt, play_relevant_image_results),
                     )
                     # st.write(play_context.play_info)
-                    # st.write(play_context.player_box_scores)
-                    # st.write(play_context.player_season_stats)
+                    st.write(play_context.player_box_scores)
+                    st.write(play_context.player_season_stats)
 
                     formatted_update = write_broadcast_update(
                         current_time=current_time,
